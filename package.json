@@ -1,7 +1,10 @@
 {
   "name": "crudclient",
   "version": "0.2.22",
-  "description": "crudclient React component",
+  "private": true,
+  "author": "Grappes s.r.o.",
+  "description": "Grappes Crud client service for Crudo backend",
+  "license": "Commercial-grappes",
   "main": "lib/index.js",
   "module": "es/index.js",
   "files": [
@@ -32,10 +35,6 @@
     "react": "^16.2.0",
     "react-dom": "^16.2.0"
   },
-  "author": "",
-  "homepage": "",
-  "license": "MIT",
-  "repository": "",
   "keywords": [
     "react-component"
   ]
