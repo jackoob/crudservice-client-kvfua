@@ -36,6 +36,7 @@ const initialState = fromJS({
 	trees: getRawObjectState(),
 	pillars: getRawObjectState(),
 	tags: getRawObjectState(),
+	feedback: getRawObjectState(),
 });
 
 const actionHandlers = {
