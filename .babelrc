@@ -1,0 +1,35 @@
+{
+  presets: [
+    ["env", {
+      "targets": {
+        "browsers": ["last 2 versions"],
+      },
+      modules: false,
+      forceAllTransforms: true
+    }],
+  ],
+  "plugins": [
+    [
+      "babel-plugin-transform-react-remove-prop-types", {
+        mode: "remove",
+        removeImport: true
+      }
+    ],
+    "babel-plugin-transform-object-rest-spread",
+    "add-module-exports"
+  ],
+  "env": {
+    "commonjs": {
+      "presets": ["minify"]
+    },
+    "es": {
+      "presets": ["minify"]
+    }
+  },
+  "ignore": [
+    ".spec.js",
+    ".test.js",
+    "-test.js",
+    "/__tests__/"
+  ]
+}
