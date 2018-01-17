@@ -1,0 +1,39 @@
+// On-the-fly generated babelrc by nwb
+
+{
+  "presets": [
+    [
+      "/Users/jaub/devel/grappes/crudservice-client/node_modules/babel-preset-es2015/lib/index.js",
+      {
+        "loose": true,
+        "modules": false
+      }
+    ],
+    "/Users/jaub/devel/grappes/crudservice-client/node_modules/babel-preset-es2016/lib/index.js",
+    "/Users/jaub/devel/grappes/crudservice-client/node_modules/babel-preset-react/lib/index.js",
+    "/Users/jaub/devel/grappes/crudservice-client/node_modules/babel-preset-stage-1/lib/index.js"
+  ],
+  "plugins": [
+    "/Users/jaub/devel/grappes/crudservice-client/node_modules/babel-plugin-transform-decorators-legacy/lib/index.js",
+    [
+      "/Users/jaub/devel/grappes/crudservice-client/node_modules/babel-plugin-transform-react-remove-prop-types/lib/index.js",
+      {
+        "mode": "wrap"
+      }
+    ],
+    [
+      "/Users/jaub/devel/grappes/crudservice-client/node_modules/babel-plugin-transform-runtime/lib/index.js",
+      {
+        "helpers": false,
+        "polyfill": false,
+        "regenerator": true
+      }
+    ]
+  ],
+  "ignore": [
+    ".spec.js",
+    ".test.js",
+    "-test.js",
+    "/__tests__/"
+  ]
+}

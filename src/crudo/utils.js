@@ -6,7 +6,8 @@ export const getCrudoObject = (crudoReducer, objectType, objectId) => {
 	const immuData = crudoReducer.getIn([objectType, 'data', id]);
 	if (!immuData) return { crudoState };
 	const obj = immuData ? immuData.toJS() : { crudoState: CrudoState.FAIL };
-	return { ...obj, crudoState };
+	const newObj = { ...obj, crudoState };
+	return newObj;
 };
 
 export const getCrudoRefObject = (crudoReducer, srcObject, parameter, referenceObjectType) => {
