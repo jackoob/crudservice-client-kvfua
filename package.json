@@ -5,8 +5,8 @@
   "author": "Grappes s.r.o.",
   "description": "Grappes Crud client service for Crudo backend",
   "license": "Commercial-grappes",
-  "main": "lib/index.js",
-  "module": "es/index.js",
+  "main": "dist/lib/index.js",
+  "module": "dist/es/index.js",
   "files": [
     "css",
     "es",
