@@ -39,9 +39,9 @@
   ],
   "scripts": {
     "build": "cross-env NODE_ENV=production npm run build:commonjs && npm run build:es",
-    "build:commonjs": "cross-env BABEL_ENV=commonjs babel src --out-dir lib",
+    "build:commonjs": "cross-env BABEL_ENV=commonjs babel src --out-dir dist/lib",
     "build:commonjs:watch": "npm run build:commonjs -- --watch",
-    "build:es": "cross-env BABEL_ENV=es babel src --out-dir es",
+    "build:es": "cross-env BABEL_ENV=es babel src --out-dir dist/es",
     "build:es:watch": "npm run build:es -- --watch",
     "build-deprecated": "nwb build-react-component",
     "clean": "nwb clean-module && nwb clean-demo",
