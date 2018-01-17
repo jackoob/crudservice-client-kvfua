@@ -1,5 +1,5 @@
 {
-  "name": "crudclient",
+  "name": "crudservice-client",
   "version": "0.2.22",
   "private": true,
   "author": "Grappes s.r.o.",
@@ -27,10 +27,7 @@
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-plugin-transform-react-remove-prop-types": "^0.4.12",
     "babel-preset-env": "^1.6.1",
-    "babel-preset-es2015": "^6.24.1",
     "babel-preset-minify": "^0.2.0",
-    "babel-preset-react": "^6.24.1",
-    "babel-preset-stage-1": "^6.24.1",
     "cross-env": "^5.1.3",
     "expect": "^22.0.3",
     "nwb": "0.18.x",
