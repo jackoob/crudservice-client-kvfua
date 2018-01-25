@@ -10,7 +10,17 @@ export const LOGOUT = `${PREFIX}LOGOUT`;
 const getRawObjectState = () => ({
 	data: {},
 	error: null,
-	crudoState: CrudoState.INITIAL,
+	crudoState:CrudoState.INITIAL,
+	storeBy: 'id',
+	//storeBy:'id',
+});
+
+const getCustomRawObjectState = ({data, crudoState, storeBy}) => ({
+	data: data ? data : {},
+	error: null,
+	crudoState: crudoState ? crudoState : CrudoState.INITIAL,
+	storeBy: storeBy ? storeBy : 'id',
+	//storeBy:'id',
 });
 
 const debug = require('debug')('http');
@@ -30,14 +40,22 @@ const reassignProp = (item, oldName, newName) => {
 	return item;
 };
 
-const initialState = fromJS({
-	activity: getRawObjectState(),
-	cardData: getRawObjectState(),
-	trees: getRawObjectState(),
-	pillars: getRawObjectState(),
-	tags: getRawObjectState(),
-	feedback: getRawObjectState(),
-});
+function prepareInitialState(objects){
+	let result = {};
+	objects.forEach(objectInit => {
+		if (typeof objectInit === "string")
+			result[objectInit] = getRawObjectState()
+		else  if (typeof objectInit === "object"){
+			if (!objectInit.key) {
+				console.warn("Object is ignored, becaus it's key is missing: "+require('util').inspect(objectInit));
+			} else {
+				result[objectInit.key] = getCustomRawObjectState(objectInit);
+			}
+		}
+
+	});
+	return fromJS(result);
+}
 
 const actionHandlers = {
 	//----------------------------------------------------------------------------
@@ -46,29 +64,57 @@ const actionHandlers = {
 	[actions.GET_DATA](state, { objectType, id }) {
 		const gettingData = initObjectSate();
 		gettingData.setIn('crudoState', CrudoState.LOADING);
-		return state.setIn([objectType, id], gettingData);
+		return state.setIn([objectType, 'data', id], gettingData);
 	},
 
 	[actions.GET_DATA_SUCCESS](state, { objectType, id, data }) {
 		const imData = fromJS(data);
-		let itemData = state.getIn([objectType, id]);
+		let itemData = state.getIn([objectType, 'data', id]);
 		if (!itemData) {
 			itemData = initObjectSate();
 		}
 		itemData = itemData.set('crudoState', CrudoState.OK).set('data', imData);
 
-		return state.setIn([objectType, id], itemData);
+		return state.setIn([objectType, 'data', id], itemData);
 	},
 
 	[actions.GET_DATA_FAIL](state, { objectType, id, error }) {
-		let itemData = state.getIn([objectType, id]);
+		let itemData = state.getIn([objectType, 'data', id]);
 		if (!itemData) {
 			itemData = initObjectSate();
 		}
 		itemData = itemData.set('crudoState', CrudoState.FAIL).set('error', error);
-		return state.setIn([objectType, id], itemData);
+		return state.setIn([objectType,'data', id], itemData);
 	},
 
+	//----------------------------------------------------------------------------
+	// singleton
+	//----------------------------------------------------------------------------
+	[actions.GET_SINGLETON](state, { objectType }) {
+		const gettingData = initObjectSate();
+		gettingData.setIn('crudoState', CrudoState.LOADING);
+		return state.setIn([objectType,'data'], gettingData);
+	},
+
+	[actions.GET_SINGLETON_SUCCESS](state, { objectType, data }) {
+		const imData = fromJS(data);
+		let itemData = state.getIn([objectType]);
+		if (!itemData) {
+			itemData = initObjectSate();
+		}
+		itemData = itemData.set('crudoState', CrudoState.OK).set('data', imData);
+
+		return state.setIn([objectType], itemData);
+	},
+
+	[actions.GET_SINGLETON_FAIL](state, { objectType, error }) {
+		let itemData = state.getIn([objectType]);
+		if (!itemData) {
+			itemData = initObjectSate();
+		}
+		itemData = itemData.set('crudoState', CrudoState.FAIL).set('error', error);
+		return state.setIn([objectType], itemData);
+	},
 	//----------------------------------------------------------------------------
 	// list
 	//----------------------------------------------------------------------------
@@ -92,9 +138,10 @@ const actionHandlers = {
 			});
 			newState = newState.setIn([listName, 'list'], fromJS(updatedIds));
 		} else {
+			const storeBy = state.getIn([objectType, 'storeBy']);
 			data.forEach((item) => {
 				let inputItem = item;
-				let itemId = inputItem.id;
+				let itemId = inputItem[storeBy];
 				if (!itemId) {
 					// eslint-disable-next-line no-underscore-dangle
 					if (item._id) inputItem = reassignProp(item, '_id', 'id');
@@ -255,5 +302,20 @@ function crudoReducer(state = initialState, action) {
 	}
 	return state;
 }
+/**
+ * Method will prepare CRUD reducer
+ * @param  {[type]} objectsArray Names of crudo objects - to set initial state
+ * @return {[type]}              The reducer
+ */
 
-export default crudoReducer;
+export default function getCrudoReducer(objectsArray) {
+	let initialState = prepareInitialState(objectsArray);
+		return (state = initialState, action) => {
+			const { type } = action;
+			if (type in actionHandlers) {
+				return actionHandlers[type](state, action);
+			}
+			return state;
+		}
+}
+//export default crudoReducer;

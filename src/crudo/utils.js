@@ -2,13 +2,30 @@ import { CrudoState } from './constants';
 
 export const getCrudoObject = (crudoReducer, objectType, objectId) => {
 	const id = `${objectId}`;
-	const crudoState = crudoReducer.getIn([objectType, 'crudoState']);
+	let crudoState = crudoReducer.getIn([objectType, 'crudoState']);
 	const immuData = crudoReducer.getIn([objectType, 'data', id]);
+	// object can have it's own state. If it has, preffer this state
+	if (immuData && immuData.has('crudoState')){
+			crudoState=immuData.get('crudoState');
+	}
+	if (!crudoState && !immuData){
+		 return { crudoState: CrudoState.INITIAL };
+	}
 	if (!immuData) return { crudoState };
 	const obj = immuData ? immuData.toJS() : { crudoState: CrudoState.FAIL };
 	const newObj = { ...obj, crudoState };
 	return newObj;
 };
+
+export const getCrudoSingleton = (crudoReducer, objectType) => {
+	const crudoState = crudoReducer.getIn([objectType, 'crudoState']);
+	const immuData = crudoReducer.getIn([objectType, 'data']);
+	if (!immuData) return { crudoState };
+	const obj = immuData ? immuData.toJS() : { crudoState: CrudoState.FAIL };
+	const newObj = { ...obj, crudoState };
+	return newObj;
+};
+
 
 export const getCrudoRefObject = (crudoReducer, srcObject, parameter, referenceObjectType) => {
 	const crudoState = crudoReducer.getIn([referenceObjectType, 'crudoState']);

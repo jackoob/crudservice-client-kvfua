@@ -11,6 +11,7 @@ export { getCudoSaga } from './crudo/saga';
 export { default as crudo } from './crudo/actions';
 export {
 	getCrudoObject,
+	getCrudoSingleton,
 	getCrudoRefObject,
 	getCrudoRefArray,
 	getCrudArray,

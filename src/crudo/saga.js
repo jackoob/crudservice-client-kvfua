@@ -40,6 +40,98 @@ const getApiObject = (objectsMap, objectType) => {
 	return apiObject;
 };
 
+
+export function* getObject({ url, cookieToken, objectsMap },args) {
+	const { objectType, id } = args;
+	try {
+		const apiObject = getApiObject(objectsMap, objectType);
+		const api = `/${apiObject}/`+id;
+
+		const fetchResponse = yield call(fetch, url + api, {
+			method: 'GET',
+			headers: getHeaders(cookieToken),
+		});
+		const response = yield call([fetchResponse, fetchResponse.json]);
+
+		console.log(response);
+		// if (response && response.status === 'success') {
+		if (fetchResponse.ok) {
+			const { data } = response;
+			yield put({
+				type: actions.GET_DATA_SUCCESS,
+				objectType,
+				data,
+				id,
+			});
+		} else {
+			const error = getErrorResponse(fetchResponse, response);
+			yield put({
+				type: actions.GET_DATA_FAIL,
+				objectType,
+				error,
+				id,
+			});
+		}
+	} catch (exception) {
+		const error = {
+			status: 404,
+			statusText: '',
+			error: 'Problem with contacting the server.',
+		};
+		yield put({
+			type: actions.GET_DATA_FAIL,
+			objectType,
+			error,
+			id,
+		});
+	}
+}
+
+export function* getSingleton({ url, cookieToken, objectsMap },args) {
+	const { objectType, params } = args;
+	try {
+		const apiObject = getApiObject(objectsMap, objectType);
+		const api = `/${apiObject}/singleton`;
+
+		const fetchResponse = yield call(fetch, url + api, {
+			method: 'POST',
+			headers: getHeaders(cookieToken),
+			body: JSON.stringify(params),
+		});
+		const response = yield call([fetchResponse, fetchResponse.json]);
+
+		// if (response && response.status === 'success') {
+		if (fetchResponse.ok) {
+			const { data } = response;
+			yield put({
+				type: actions.GET_SINGLETON_SUCCESS,
+				objectType,
+				data,
+				args,
+			});
+		} else {
+			const error = getErrorResponse(fetchResponse, response);
+			yield put({
+				type: actions.GET_SINGLETON_FAIL,
+				objectType,
+				error,
+				args,
+			});
+		}
+	} catch (exception) {
+		const error = {
+			status: 404,
+			statusText: '',
+			error: 'Problem with contacting the server.',
+		};
+		yield put({
+			type: actions.GET_SINGLETON_FAIL,
+			objectType,
+			error,
+			args,
+		});
+	}
+}
 export function* listData({ url, cookieToken, objectsMap },{ objectType, listName }) {
 	try {
 		const apiObject = getApiObject(objectsMap, objectType);
@@ -247,6 +339,8 @@ const EXAMPLE_CONFIG = {
 
 // export sagas
 export const getCudoSaga = (sagaParams) => [
+	takeEvery(actions.GET_DATA, getObject, sagaParams),
+	takeEvery(actions.GET_SINGLETON, getSingleton, sagaParams),
 	takeEvery(actions.LIST_DATA, listData, sagaParams),
 	takeEvery(actions.CREATE_DATA, createObject, sagaParams),
 	takeEvery(actions.UPDATE_DATA, updateObject, sagaParams),

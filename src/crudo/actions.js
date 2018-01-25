@@ -1,12 +1,21 @@
 import { actions } from './constants';
 
-export function getData({ objectType, id }) {
+export function getData( objectType, id ) {
 	return {
 		type: actions.GET_DATA,
 		objectType,
 		id,
 	};
 }
+
+export function getSingleton( objectType, params) {
+	return {
+		type: actions.GET_SINGLETON,
+		objectType,
+		params,
+	};
+}
+
 
 export function createData(objectType, data, success, fail) {
 	return {
@@ -65,6 +74,7 @@ export function clearData() {
 
 const crudo = {
 	getData,
+	getSingleton,
 	createData,
 	updateData,
 	updateListData,
