@@ -25,7 +25,13 @@ const getCustomRawObjectState = ({data, crudoState, storeBy}) => ({
 
 const debug = require('debug')('http');
 
-const initObjectSate = () => fromJS(getRawObjectState());
+const initObjectSate = (sourceObject) => {
+	let result = fromJS(getRawObjectState())
+	if (sourceObject) {
+		result = result.set("storeBy",sourceObject.get("storeBy"));
+	}
+	return result;
+};
 
 const reassignProp = (item, oldName, newName) => {
 	// Do nothing if the names are the same
@@ -119,7 +125,7 @@ const actionHandlers = {
 	// list
 	//----------------------------------------------------------------------------
 	[actions.LIST_DATA](state, { objectType, listName }) {
-		let gettingData = initObjectSate();
+		let gettingData = initObjectSate(state.getIn([objectType]));
 		gettingData = gettingData.set('crudoState', CrudoState.LOADING);
 		if (listName) {
 			return state.setIn([listName], gettingData);
@@ -157,7 +163,7 @@ const actionHandlers = {
 	[actions.LIST_DATA_FAIL](state, { objectType, listName, error }) {
 		let itemData = state.getIn([objectType]);
 		if (!itemData) {
-			itemData = initObjectSate();
+			itemData = initObjectSate(state.getIn([objectType]));
 		}
 		itemData = itemData.set('crudoState', CrudoState.FAIL).set('error', error);
 		if (listName) {
@@ -231,6 +237,11 @@ const actionHandlers = {
 			} else {
 				if (!state.getIn([objectType, 'data', id])) {
 					debug(`No object ${objectType} with id ${id} was found.`);
+					if (args && args.success) {
+						setTimeout(() => {
+							args.success(data);
+						}, 1);
+					}
 					return state;
 				}
 				let mergeDataUpd = state.getIn([objectType, 'data', id]).toJS();

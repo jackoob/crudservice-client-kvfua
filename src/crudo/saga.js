@@ -53,7 +53,7 @@ export function* getObject({ url, cookieToken, objectsMap },args) {
 		});
 		const response = yield call([fetchResponse, fetchResponse.json]);
 
-		console.log(response);
+		// console.log(response);
 		// if (response && response.status === 'success') {
 		if (fetchResponse.ok) {
 			const { data } = response;
@@ -257,6 +257,7 @@ export function* updateObject({ url, cookieToken, objectsMap }, args) {
 				objectType,
 				listName,
 				data,
+				args,
 			});
 		} else {
 			yield put({
