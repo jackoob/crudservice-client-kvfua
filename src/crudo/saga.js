@@ -237,7 +237,9 @@ export function* updateObject({ url, cookieToken, objectsMap }, args) {
 
 	try {
 		const apiObject = getApiObject(objectsMap, objectType);
-		const api = `/${apiObject}/${data.id}`;
+		let id = data.id;
+		if (!id) id = data._id;
+		const api = `/${apiObject}/${id}`;
 
 		const fetchResponse = yield call(fetch, url + api, {
 			method: 'PUT',
