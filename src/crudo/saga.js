@@ -62,6 +62,7 @@ export function* getObject({ url, cookieToken, objectsMap },args) {
 				objectType,
 				data,
 				id,
+				args,
 			});
 		} else {
 			const error = getErrorResponse(fetchResponse, response);
@@ -70,6 +71,7 @@ export function* getObject({ url, cookieToken, objectsMap },args) {
 				objectType,
 				error,
 				id,
+				args,
 			});
 		}
 	} catch (exception) {
@@ -83,6 +85,7 @@ export function* getObject({ url, cookieToken, objectsMap },args) {
 			objectType,
 			error,
 			id,
+			args,
 		});
 	}
 }

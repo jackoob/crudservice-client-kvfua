@@ -1,10 +1,12 @@
 import { actions } from './constants';
 
-export function getData( objectType, id ) {
+export function getData( objectType, id, success, fail)  {
 	return {
 		type: actions.GET_DATA,
 		objectType,
 		id,
+		success,
+		fail,
 	};
 }
 

@@ -73,23 +73,32 @@ const actionHandlers = {
 		return state.setIn([objectType, 'data', id], gettingData);
 	},
 
-	[actions.GET_DATA_SUCCESS](state, { objectType, id, data }) {
+	[actions.GET_DATA_SUCCESS](state, { objectType, id, data, args }) {
 		const imData = fromJS(data);
 		let itemData = state.getIn([objectType, 'data', id]);
 		if (!itemData) {
 			itemData = initObjectSate();
 		}
 		itemData = itemData.set('crudoState', CrudoState.OK).set('data', imData);
-
+		if (args && args.success) {
+			setTimeout(() => {
+				args.success(data);
+			}, 1);
+		}
 		return state.setIn([objectType, 'data', id], itemData);
 	},
 
-	[actions.GET_DATA_FAIL](state, { objectType, id, error }) {
+	[actions.GET_DATA_FAIL](state, { objectType, id, error, args }) {
 		let itemData = state.getIn([objectType, 'data', id]);
 		if (!itemData) {
 			itemData = initObjectSate();
 		}
 		itemData = itemData.set('crudoState', CrudoState.FAIL).set('error', error);
+		if (args && args.success) {
+			setTimeout(() => {
+				args.success(newData);
+			}, 1);
+		}
 		return state.setIn([objectType,'data', id], itemData);
 	},
 
