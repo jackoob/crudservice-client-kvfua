@@ -74,12 +74,13 @@ const actionHandlers = {
 	},
 
 	[actions.GET_DATA_SUCCESS](state, { objectType, id, data, args }) {
-		const imData = fromJS(data);
+
+		const imData = fromJS(Object.assign({},data,{crudoState: CrudoState.OK}));
 		let itemData = state.getIn([objectType, 'data', id]);
 		if (!itemData) {
 			itemData = initObjectSate();
 		}
-		itemData = itemData.set('crudoState', CrudoState.OK).set('data', imData);
+		itemData = itemData.merge(imData);
 		if (args && args.success) {
 			setTimeout(() => {
 				args.success(data);

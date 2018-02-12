@@ -13,7 +13,7 @@ export const getCrudoObject = (crudoReducer, objectType, objectId) => {
 	}
 	if (!immuData) return { crudoState };
 	const obj = immuData ? immuData.toJS() : { crudoState: CrudoState.FAIL };
-	const newObj = { ...obj, crudoState };
+	const newObj = Object.assign({}, {crudoState}, obj );
 	return newObj;
 };
 
