@@ -97,7 +97,7 @@ const actionHandlers = {
 		itemData = itemData.set('crudoState', CrudoState.FAIL).set('error', error);
 		if (args && args.success) {
 			setTimeout(() => {
-				args.success(newData);
+				args.success(itemData);
 			}, 1);
 		}
 		return state.setIn([objectType,'data', id], itemData);
