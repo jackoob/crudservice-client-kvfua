@@ -82,7 +82,8 @@ export const getCrudArray = (crudoReducer, objectType) => {
 	const result = [];
 	const data = immuData.toJS();
 	Object.keys(data).forEach((key) => {
-		result.push(data[key]);
+		if (!data[key].crudoState || data[key].crudoState === CrudoState.OK)
+			result.push(data[key].data);
 	});
 	return result;
 };

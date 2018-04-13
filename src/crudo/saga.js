@@ -282,26 +282,24 @@ export function* updateObject({ url, cookieToken, objectsMap }, args) {
 	}
 }
 
-export function* deleteObject({ url }, args) {
+export function* deleteObject({ url, cookieToken, objectsMap }, args) {
 	const { objectType, id } = args;
 
 	try {
-		// const { response, error } = yield call(crudoApi().Login, user, password);
+		const apiObject = getApiObject(objectsMap, objectType);
+		const api = `/${apiObject}/${id}`;
+
+		const fetchResponse = yield call(fetch, url + api, {
+			method: 'DELETE',
+			headers: getHeaders(cookieToken),
+		});
 
 		// ------------------------------------------------------------------------
-		// TODO: this block is temporal -
-		// it should be replaced by calling API on server
-		const response = {
-			status: 'success',
-			timestamp: '2017-01-01T10:00:00',
-		};
 
-		yield delay(1000);
+		const response = yield call([fetchResponse, fetchResponse.json]);
 
-		// TODO:  end of temporal block
-		// ------------------------------------------------------------------------
 		const error = { error: 'Problem with calling server' };
-		if (response && response.status === 'success') {
+		if (fetchResponse.ok) {
 			yield put({
 				type: actions.DELETE_DATA_SUCCESS,
 				objectType,
