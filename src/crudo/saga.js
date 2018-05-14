@@ -28,6 +28,7 @@ const getHeaders = (cookieToken) => {
 		Accept: 'application/json, text/plain, */*',
 		'Content-Type': 'application/json',
 		Authorization: `Bearer ${token}`,
+		Cookie: cookieToken,
 	};
 	return headers;
 };
