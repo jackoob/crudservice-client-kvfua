@@ -51,6 +51,7 @@ export function* getObject({ url, cookieToken, objectsMap },args) {
 		const fetchResponse = yield call(fetch, url + api, {
 			method: 'GET',
 			headers: getHeaders(cookieToken),
+			credentials: 'include',
 		});
 		const response = yield call([fetchResponse, fetchResponse.json]);
 
@@ -101,6 +102,7 @@ export function* getSingleton({ url, cookieToken, objectsMap },args) {
 			method: 'POST',
 			headers: getHeaders(cookieToken),
 			body: JSON.stringify(params),
+			credentials: 'include',
 		});
 		const response = yield call([fetchResponse, fetchResponse.json]);
 
@@ -144,6 +146,7 @@ export function* listData({ url, cookieToken, objectsMap },{ objectType, listNam
 		const fetchResponse = yield call(fetch, url + api, {
 			method: 'GET',
 			headers: getHeaders(cookieToken),
+			credentials: 'include',
 		});
 
 		const response = yield call([fetchResponse, fetchResponse.json]);
@@ -198,6 +201,7 @@ export function* createObject({ url, cookieToken, objectsMap }, args) {
 			method: 'POST',
 			headers: getHeaders(cookieToken),
 			body: JSON.stringify(data),
+			credentials: 'include',
 		});
 		const response = yield call([fetchResponse, fetchResponse.json]);
 
@@ -249,6 +253,7 @@ export function* updateObject({ url, cookieToken, objectsMap }, args) {
 			method: 'PUT',
 			headers: getHeaders(cookieToken),
 			body: JSON.stringify(data),
+			credentials: 'include',
 		});
 
 		// ------------------------------------------------------------------------
@@ -293,6 +298,7 @@ export function* deleteObject({ url, cookieToken, objectsMap }, args) {
 		const fetchResponse = yield call(fetch, url + api, {
 			method: 'DELETE',
 			headers: getHeaders(cookieToken),
+			credentials: 'include',
 		});
 
 		// ------------------------------------------------------------------------
