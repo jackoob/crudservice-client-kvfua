@@ -63,22 +63,23 @@ function prepareInitialState(objects){
 	return fromJS(result);
 }
 
+
 const actionHandlers = {
 	//----------------------------------------------------------------------------
 	// get
 	//----------------------------------------------------------------------------
-	[actions.GET_DATA](state, { objectType, id }) {
-		const gettingData = initObjectSate();
+	[actions.GET_DATA](state, { objectName, id }) {
+		const gettingData = initObjectSate(state.getIn([objectName]));
 		gettingData.setIn('crudoState', CrudoState.LOADING);
-		return state.setIn([objectType, 'data', id], gettingData);
+		return state.setIn([objectName, 'data', id], gettingData);
 	},
 
-	[actions.GET_DATA_SUCCESS](state, { objectType, id, data, args }) {
+	[actions.GET_DATA_SUCCESS](state, { objectName, id, data, args }) {
 
 		const imData = fromJS(Object.assign({},data,{crudoState: CrudoState.OK}));
-		let itemData = state.getIn([objectType, 'data', id]);
+		let itemData = state.getIn([objectName, 'data', id]);
 		if (!itemData) {
-			itemData = initObjectSate();
+			itemData = initObjectSate(state.getIn([objectName]));
 		}
 		itemData = itemData.merge(imData);
 		if (args && args.success) {
@@ -86,13 +87,13 @@ const actionHandlers = {
 				args.success(data);
 			}, 1);
 		}
-		return state.setIn([objectType, 'data', id], itemData);
+		return state.setIn([objectName, 'data', id], itemData);
 	},
 
-	[actions.GET_DATA_FAIL](state, { objectType, id, error, args }) {
-		let itemData = state.getIn([objectType, 'data', id]);
+	[actions.GET_DATA_FAIL](state, { objectName, id, error, args }) {
+		let itemData = state.getIn([objectName, 'data', id]);
 		if (!itemData) {
-			itemData = initObjectSate();
+			itemData = initObjectSate(state.getIn([objectName]));
 		}
 		itemData = itemData.set('crudoState', CrudoState.FAIL).set('error', error);
 		if (args && args.success) {
@@ -100,50 +101,50 @@ const actionHandlers = {
 				args.success(itemData);
 			}, 1);
 		}
-		return state.setIn([objectType,'data', id], itemData);
+		return state.setIn([objectName,'data', id], itemData);
 	},
 
 	//----------------------------------------------------------------------------
 	// singleton
 	//----------------------------------------------------------------------------
-	[actions.GET_SINGLETON](state, { objectType }) {
-		const gettingData = initObjectSate();
+	[actions.GET_SINGLETON](state, { objectName }) {
+		const gettingData = initObjectSate(state.getIn([objectName]));
 		gettingData.setIn('crudoState', CrudoState.LOADING);
-		return state.setIn([objectType,'data'], gettingData);
+		return state.setIn([objectName,'data'], gettingData);
 	},
 
-	[actions.GET_SINGLETON_SUCCESS](state, { objectType, data }) {
+	[actions.GET_SINGLETON_SUCCESS](state, { objectName, data }) {
 		const imData = fromJS(data);
-		let itemData = state.getIn([objectType]);
+		let itemData = state.getIn([objectName]);
 		if (!itemData) {
-			itemData = initObjectSate();
+			itemData = initObjectSate(state.getIn([objectName]));
 		}
 		itemData = itemData.set('crudoState', CrudoState.OK).set('data', imData);
 
-		return state.setIn([objectType], itemData);
+		return state.setIn([objectName], itemData);
 	},
 
-	[actions.GET_SINGLETON_FAIL](state, { objectType, error }) {
-		let itemData = state.getIn([objectType]);
+	[actions.GET_SINGLETON_FAIL](state, { objectName, error }) {
+		let itemData = state.getIn([objectName]);
 		if (!itemData) {
-			itemData = initObjectSate();
+			itemData = initObjectSate(state.getIn([objectName]));
 		}
 		itemData = itemData.set('crudoState', CrudoState.FAIL).set('error', error);
-		return state.setIn([objectType], itemData);
+		return state.setIn([objectName], itemData);
 	},
 	//----------------------------------------------------------------------------
 	// list
 	//----------------------------------------------------------------------------
-	[actions.LIST_DATA](state, { objectType, listName }) {
-		let gettingData = initObjectSate(state.getIn([objectType]));
+	[actions.LIST_DATA](state, { objectName, listName }) {
+		let gettingData = initObjectSate(state.getIn([objectName]));
 		gettingData = gettingData.set('crudoState', CrudoState.LOADING);
 		if (listName) {
 			return state.setIn([listName], gettingData);
 		}
-		return state.setIn([objectType], gettingData);
+		return state.setIn([objectName], gettingData);
 	},
-	[actions.LIST_DATA_SUCCESS](state, { objectType, listName, data }) {
-		let target = objectType;
+	[actions.LIST_DATA_SUCCESS](state, { objectName, listName, data }) {
+		let target = objectName;
 		let newState = state;
 		if (listName) {
 			target = listName;
@@ -154,7 +155,7 @@ const actionHandlers = {
 			});
 			newState = newState.setIn([listName, 'list'], fromJS(updatedIds));
 		} else {
-			const storeBy = state.getIn([objectType, 'storeBy']);
+			const storeBy = state.getIn([objectName, 'storeBy']);
 			data.forEach((item) => {
 				let inputItem = item;
 				let itemId = inputItem[storeBy];
@@ -164,22 +165,22 @@ const actionHandlers = {
 					itemId = inputItem.id;
 				}
 				if (itemId) {
-					newState = newState.setIn([objectType, 'data', itemId], fromJS(inputItem));
+					newState = newState.setIn([objectName, 'data', itemId], fromJS(inputItem));
 				}
 			});
 		}
 		return newState.setIn([target, 'crudoState'], CrudoState.OK);
 	},
-	[actions.LIST_DATA_FAIL](state, { objectType, listName, error }) {
-		let itemData = state.getIn([objectType]);
+	[actions.LIST_DATA_FAIL](state, { objectName, listName, error }) {
+		let itemData = state.getIn([objectName]);
 		if (!itemData) {
-			itemData = initObjectSate(state.getIn([objectType]));
+			itemData = initObjectSate(state.getIn([objectName]));
 		}
 		itemData = itemData.set('crudoState', CrudoState.FAIL).set('error', error);
 		if (listName) {
 			return state.setIn([listName], itemData);
 		}
-		return state.setIn([objectType], itemData);
+		return state.setIn([objectName], itemData);
 	},
 
 	//----------------------------------------------------------------------------
@@ -189,20 +190,20 @@ const actionHandlers = {
 		return state;
 	},
 	[actions.CREATE_DATA_SUCCESS](state, {
-		objectType, newId, data, args,
+		objectName, newId, data, args,
 	}) {
 		let newState = state;
 		const newData = data;
 		newData.id = newId;
 		if (newId) {
-			newState = newState.setIn([objectType, 'data', newId], fromJS(newData));
+			newState = newState.setIn([objectName, 'data', newId], fromJS(newData));
 		}
 		if (args && args.success) {
 			setTimeout(() => {
 				args.success(newData);
 			}, 1);
 		}
-		return newState.setIn([objectType, 'crudoState'], CrudoState.OK);
+		return newState.setIn([objectName, 'crudoState'], CrudoState.OK);
 	},
 
 	[actions.CREATE_DATA_FAIL](state, { error, args }) {
@@ -221,14 +222,14 @@ const actionHandlers = {
 		return state;
 	},
 	[actions.UPDATE_DATA_SUCCESS](state, {
-		objectType, data, listName, args,
+		objectName, data, listName, args,
 	}) {
 		// TODO: call success handler + update data
 		let newState = state;
 		const { id } = data;
-		if (objectType && id) {
+		if (objectName && id) {
 			if (listName) {
-				let list = state.getIn([objectType, 'list']);
+				let list = state.getIn([objectName, 'list']);
 				const idx = list.findIndex((value) => {
 					if (value.get('id') === id) {
 						return true;
@@ -239,14 +240,14 @@ const actionHandlers = {
 					let mergeData = list.get(idx).toJS();
 					mergeData = Object.assign(mergeData, data);
 					list = list.set(idx, fromJS(mergeData));
-					newState = state.setIn([objectType, 'list'], list);
+					newState = state.setIn([objectName, 'list'], list);
 				} else {
 					newState = state;
-					debug(`Object ${objectType} with id "${id}" not found in list ${listName}.`);
+					debug(`Object ${objectName} with id "${id}" not found in list ${listName}.`);
 				}
 			} else {
-				if (!state.getIn([objectType, 'data', id])) {
-					debug(`No object ${objectType} with id ${id} was found.`);
+				if (!state.getIn([objectName, 'data', id])) {
+					debug(`No object ${objectName} with id ${id} was found.`);
 					if (args && args.success) {
 						setTimeout(() => {
 							args.success(data);
@@ -254,14 +255,14 @@ const actionHandlers = {
 					}
 					return state;
 				}
-				let mergeDataUpd = state.getIn([objectType, 'data', id]).toJS();
+				let mergeDataUpd = state.getIn([objectName, 'data', id]).toJS();
 				mergeDataUpd = Object.assign(mergeDataUpd, data);
-				newState = state.setIn([objectType, 'data', id], fromJS(mergeDataUpd));
+				newState = state.setIn([objectName, 'data', id], fromJS(mergeDataUpd));
 			}
-		} else if (!objectType) {
-			debug('Respone of updating is missing  objectType. ');
+		} else if (!objectName) {
+			debug('Respone of updating is missing  objectName. ');
 		} else {
-			debug(`Respone of updating object ${objectType} is missing id`);
+			debug(`Respone of updating object ${objectName} is missing id`);
 		}
 		if (args && args.success) {
 			setTimeout(() => {
@@ -286,9 +287,9 @@ const actionHandlers = {
 	[actions.DELETE_DATA](state) {
 		return state;
 	},
-	[actions.DELETE_DATA_SUCCESS](state, { objectType, id, args }) {
-		if (objectType && id) {
-			return state.deleteIn([objectType, 'data', id]);
+	[actions.DELETE_DATA_SUCCESS](state, { objectName, id, args }) {
+		if (objectName && id) {
+			return state.deleteIn([objectName, 'data', id]);
 		}
 		if (args && args.success) {
 			setTimeout(() => {

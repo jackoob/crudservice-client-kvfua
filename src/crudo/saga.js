@@ -7,6 +7,24 @@ import { actions } from './constants';
 //import { url } from '../../config';
 
 
+export function prepareObjectsConfig(objects) {
+	let result = {};
+	objects.forEach(objectInit => {
+		if (typeof objectInit === "object") {
+			if (objectInit.storeBy) {
+				result[objectInit.key] = { 
+					storeBy: objectInit.storeBy,
+					remoteIdentification: objectInit.remoteIdentification,
+				};
+			}
+		}
+
+	});
+	return result;
+}
+
+
+
 export function getCookie(cname) {
 	const name = `${cname}=`;
 	const ca = decodeURIComponent(document.cookie).split(';');
@@ -33,20 +51,39 @@ const getHeaders = (cookieToken) => {
 	return headers;
 };
 
-const getApiObject = (objectsMap, objectType) => {
-	let apiObject = objectType;
-	if (Object.prototype.hasOwnProperty.call(objectsMap, objectType)) {
-		apiObject = objectsMap[objectType];
+const getApiObject = (objectsMap, objectName) => {
+	let apiObject = objectName;
+	if (Object.prototype.hasOwnProperty.call(objectsMap, objectName)) {
+		apiObject = objectsMap[objectName];
 	}
 	return apiObject;
 };
 
+const getObjectIdentifier = (data, crudObjects, objectName) => {
+	let id;
+	if (!crudObjects[objectName] || !crudObjects[objectName].storeBy) {
+		id = data.id;
+		if (!id) id = data._id;
+	} else {
+		let remoteStoreBy = crudObjects[objectName].storeBy;
+		if (crudObjects[objectName].remoteIdentification)
+			remoteStoreBy = crudObjects[objectName].remoteIdentification;
+		id = remoteStoreBy;
+	}
+	if (!id) {
+		throw "Object " + objectName + " is missing identifier.";
+	}
+	return data[id];
 
-export function* getObject({ url, cookieToken, objectsMap },args) {
-	const { objectType, id } = args;
+};
+
+
+export function* getObject({ url, cookieToken, objectsMap, crudObjects }, args) {
+	const { objectName, id } = args;
 	try {
-		const apiObject = getApiObject(objectsMap, objectType);
-		const api = `/${apiObject}/`+id;
+		const apiObject = getApiObject(objectsMap, objectName);
+
+		const api = `/${apiObject}/` + id;
 
 		const fetchResponse = yield call(fetch, url + api, {
 			method: 'GET',
@@ -61,7 +98,7 @@ export function* getObject({ url, cookieToken, objectsMap },args) {
 			const { data } = response;
 			yield put({
 				type: actions.GET_DATA_SUCCESS,
-				objectType,
+				objectName,
 				data,
 				id,
 				args,
@@ -70,7 +107,7 @@ export function* getObject({ url, cookieToken, objectsMap },args) {
 			const error = getErrorResponse(fetchResponse, response);
 			yield put({
 				type: actions.GET_DATA_FAIL,
-				objectType,
+				objectName,
 				error,
 				id,
 				args,
@@ -84,7 +121,7 @@ export function* getObject({ url, cookieToken, objectsMap },args) {
 		};
 		yield put({
 			type: actions.GET_DATA_FAIL,
-			objectType,
+			objectName,
 			error,
 			id,
 			args,
@@ -92,10 +129,10 @@ export function* getObject({ url, cookieToken, objectsMap },args) {
 	}
 }
 
-export function* getSingleton({ url, cookieToken, objectsMap },args) {
-	const { objectType, params } = args;
+export function* getSingleton({ url, cookieToken, objectsMap }, args) {
+	const { objectName, params } = args;
 	try {
-		const apiObject = getApiObject(objectsMap, objectType);
+		const apiObject = getApiObject(objectsMap, objectName);
 		const api = `/${apiObject}/singleton`;
 
 		const fetchResponse = yield call(fetch, url + api, {
@@ -111,7 +148,7 @@ export function* getSingleton({ url, cookieToken, objectsMap },args) {
 			const { data } = response;
 			yield put({
 				type: actions.GET_SINGLETON_SUCCESS,
-				objectType,
+				objectName,
 				data,
 				args,
 			});
@@ -119,7 +156,7 @@ export function* getSingleton({ url, cookieToken, objectsMap },args) {
 			const error = getErrorResponse(fetchResponse, response);
 			yield put({
 				type: actions.GET_SINGLETON_FAIL,
-				objectType,
+				objectName,
 				error,
 				args,
 			});
@@ -132,15 +169,15 @@ export function* getSingleton({ url, cookieToken, objectsMap },args) {
 		};
 		yield put({
 			type: actions.GET_SINGLETON_FAIL,
-			objectType,
+			objectName,
 			error,
 			args,
 		});
 	}
 }
-export function* listData({ url, cookieToken, objectsMap },{ objectType, listName }) {
+export function* listData({ url, cookieToken, objectsMap }, { objectName, listName }) {
 	try {
-		const apiObject = getApiObject(objectsMap, objectType);
+		const apiObject = getApiObject(objectsMap, objectName);
 		const api = `/${apiObject}/all`;
 
 		const fetchResponse = yield call(fetch, url + api, {
@@ -157,14 +194,14 @@ export function* listData({ url, cookieToken, objectsMap },{ objectType, listNam
 			const { data } = response;
 			yield put({
 				type: actions.LIST_DATA_SUCCESS,
-				objectType,
+				objectName,
 				listName,
 				data,
 			});
 		} else {
 			yield put({
 				type: actions.LIST_DATA_FAIL,
-				objectType,
+				objectName,
 				listName,
 				error,
 			});
@@ -172,7 +209,7 @@ export function* listData({ url, cookieToken, objectsMap },{ objectType, listNam
 	} catch (exception) {
 		yield put({
 			type: actions.LIST_DATA_FAIL,
-			objectType,
+			objectName,
 			listName,
 			error: exception,
 		});
@@ -192,9 +229,9 @@ const getErrorResponse = (fetchResponse, responseData) => {
 };
 
 export function* createObject({ url, cookieToken, objectsMap }, args) {
-	const { objectType, data } = args;
+	const { objectName, data } = args;
 	try {
-		const apiObject = getApiObject(objectsMap, objectType);
+		const apiObject = getApiObject(objectsMap, objectName);
 		const api = `/${apiObject}/create`;
 
 		const fetchResponse = yield call(fetch, url + api, {
@@ -211,7 +248,7 @@ export function* createObject({ url, cookieToken, objectsMap }, args) {
 
 			yield put({
 				type: actions.CREATE_DATA_SUCCESS,
-				objectType,
+				objectName,
 				newId,
 				data,
 				args,
@@ -220,7 +257,7 @@ export function* createObject({ url, cookieToken, objectsMap }, args) {
 			const error = getErrorResponse(fetchResponse, response);
 			yield put({
 				type: actions.CREATE_DATA_FAIL,
-				objectType,
+				objectName,
 				error,
 				args,
 			});
@@ -233,21 +270,20 @@ export function* createObject({ url, cookieToken, objectsMap }, args) {
 		};
 		yield put({
 			type: actions.CREATE_DATA_FAIL,
-			objectType,
+			objectName,
 			error,
 			args,
 		});
 	}
 }
 
-export function* updateObject({ url, cookieToken, objectsMap }, args) {
-	const { objectType, listName, data } = args;
+export function* updateObject({ url, cookieToken, objectsMap, crudObjects }, args) {
+	const { objectName, listName, data } = args;
 
 	try {
-		const apiObject = getApiObject(objectsMap, objectType);
-		let id = data.id;
-		if (!id) id = data._id;
-		const api = `/${apiObject}/${id}`;
+		const apiObject = getApiObject(objectsMap, objectName);
+		const key = getObjectIdentifier(data, crudObjects, objectName);
+		const api = `/${apiObject}/${key}`;
 
 		const fetchResponse = yield call(fetch, url + api, {
 			method: 'PUT',
@@ -265,7 +301,7 @@ export function* updateObject({ url, cookieToken, objectsMap }, args) {
 		if (response && response.status === 'success') {
 			yield put({
 				type: actions.UPDATE_DATA_SUCCESS,
-				objectType,
+				objectName,
 				listName,
 				data,
 				args,
@@ -273,7 +309,7 @@ export function* updateObject({ url, cookieToken, objectsMap }, args) {
 		} else {
 			yield put({
 				type: actions.UPDATE_DATA_FAIL,
-				objectType,
+				objectName,
 				listName,
 				error,
 			});
@@ -281,18 +317,21 @@ export function* updateObject({ url, cookieToken, objectsMap }, args) {
 	} catch (exception) {
 		yield put({
 			type: actions.UPDATE_DATA_FAIL,
-			objectType,
+			objectName,
 			listName,
 			error: exception,
 		});
 	}
 }
 
+
+
+
 export function* deleteObject({ url, cookieToken, objectsMap }, args) {
-	const { objectType, id } = args;
+	const { objectName, id } = args;
 
 	try {
-		const apiObject = getApiObject(objectsMap, objectType);
+		const apiObject = getApiObject(objectsMap, objectName);
 		const api = `/${apiObject}/${id}`;
 
 		const fetchResponse = yield call(fetch, url + api, {
@@ -309,14 +348,14 @@ export function* deleteObject({ url, cookieToken, objectsMap }, args) {
 		if (fetchResponse.ok) {
 			yield put({
 				type: actions.DELETE_DATA_SUCCESS,
-				objectType,
+				objectName,
 				id,
 				args,
 			});
 		} else {
 			yield put({
 				type: actions.DELETE_DATA_FAIL,
-				objectType,
+				objectName,
 				error,
 				args,
 			});
@@ -324,7 +363,7 @@ export function* deleteObject({ url, cookieToken, objectsMap }, args) {
 	} catch (exception) {
 		yield put({
 			type: actions.DELETE_DATA_FAIL,
-			objectType,
+			objectName,
 			error: exception,
 			args,
 		});
@@ -332,28 +371,56 @@ export function* deleteObject({ url, cookieToken, objectsMap }, args) {
 }
 
 
-/*
-// convert local names to api names (when some objec's name differs from API name)
-const objectNamesMap = {
-	cards: 'card',
-	components: 'component',
-	forms: 'form',
-	client: 'contact',
-};
 
-const EXAMPLE_CONFIG = {
-	url: (process.env.NODE_ENV === 'development') ? 'http://localhost:7777' : 'https://app.production.com',
-	objectsMap: objectNamesMap,
-	cookieToken:'projectname.tkn',
+export function* callRPC({ url, cookieToken, objectsMap }, args) {
+	const { objectName, rpcName, data, success, fail } = args;
+
+	try {
+		const apiObject = getApiObject(objectsMap, objectName);
+		const api = `${url}/${apiObject}/${rpcName}`;
+		let fetchData = {
+			method: 'POST',
+			headers: getHeaders(cookieToken),
+			body: JSON.stringify(data),
+			credentials: 'include',
+		};
+
+		const fetchResponse = yield call(fetch, api, fetchData);
+		// ------------------------------------------------------------------------
+
+		const response = yield call([fetchResponse, fetchResponse.json]);
+
+		const error = { error: 'Problem with calling server', response: fetchResponse };
+		if (fetchResponse.ok) {
+
+			if (success) {
+				success(response.data);
+			}
+		} else {
+			if (fail) {
+				fail(error);
+			}
+		}
+	} catch (exception) {
+		if (fail) {
+			fail(exception, {});
+		}
+	}
 }
-*/
+
+
 
 // export sagas
-export const getCudoSaga = (sagaParams) => [
-	takeEvery(actions.GET_DATA, getObject, sagaParams),
-	takeEvery(actions.GET_SINGLETON, getSingleton, sagaParams),
-	takeEvery(actions.LIST_DATA, listData, sagaParams),
-	takeEvery(actions.CREATE_DATA, createObject, sagaParams),
-	takeEvery(actions.UPDATE_DATA, updateObject, sagaParams),
-	takeEvery(actions.DELETE_DATA, deleteObject, sagaParams),
-];
+export const getCudoSaga = (rawSagaParams) => {
+	const sagaParams = Object.assign({}, rawSagaParams);
+	sagaParams.crudObjects = prepareObjectsConfig(rawSagaParams.crudObjects);
+	return [
+		takeEvery(actions.GET_DATA, getObject, sagaParams),
+		takeEvery(actions.GET_SINGLETON, getSingleton, sagaParams),
+		takeEvery(actions.LIST_DATA, listData, sagaParams),
+		takeEvery(actions.CREATE_DATA, createObject, sagaParams),
+		takeEvery(actions.UPDATE_DATA, updateObject, sagaParams),
+		takeEvery(actions.DELETE_DATA, deleteObject, sagaParams),
+		takeEvery(actions.RPC, callRPC, sagaParams),
+	]
+};
