@@ -60,20 +60,24 @@ const getApiObject = (objectsMap, objectName) => {
 };
 
 const getObjectIdentifier = (data, crudObjects, objectName) => {
+	if (!data) {
+		throw "Object " + objectName + " is undefined.";
+	}
 	let id;
 	if (!crudObjects[objectName] || !crudObjects[objectName].storeBy) {
 		id = data.id;
 		if (!id) id = data._id;
+		
 	} else {
 		let remoteStoreBy = crudObjects[objectName].storeBy;
 		if (crudObjects[objectName].remoteIdentification)
 			remoteStoreBy = crudObjects[objectName].remoteIdentification;
-		id = remoteStoreBy;
+		id = data[remoteStoreBy];
 	}
 	if (!id) {
 		throw "Object " + objectName + " is missing identifier.";
 	}
-	return data[id];
+	return id;
 
 };
 
