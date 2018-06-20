@@ -257,6 +257,7 @@ const actionHandlers = {
 				}
 				let mergeDataUpd = state.getIn([objectName, 'data', id]).toJS();
 				mergeDataUpd = Object.assign(mergeDataUpd, data);
+				mergeDataUpd.version = mergeDataUpd.version ? (mergeDataUpd.version+1):1; 
 				newState = state.setIn([objectName, 'data', id], fromJS(mergeDataUpd));
 			}
 		} else if (!objectName) {
