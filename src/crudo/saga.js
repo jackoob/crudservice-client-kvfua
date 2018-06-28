@@ -41,12 +41,9 @@ export function getCookie(cname) {
 }
 
 const getHeaders = (cookieToken) => {
-	const token = getCookie(cookieToken);
 	const headers = {
 		Accept: 'application/json, text/plain, */*',
 		'Content-Type': 'application/json',
-		Authorization: `Bearer ${token}`,
-		Cookie: cookieToken,
 	};
 	return headers;
 };
