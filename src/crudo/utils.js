@@ -1,4 +1,16 @@
 import { CrudoState } from './constants';
+import { fromJS } from 'immutable';
+
+const initialObjectState = fromJS({ crudoState: CrudoState.INITIAL });
+
+export const getCrudoObjectSelector = (objectName, propsDataKey) => {
+	return (state, props) => {
+		const result = state.crudo.getIn([objectName, 'data', props[propsDataKey]]);
+		if (!result || !result.has('_id'))
+			return initialObjectState;
+		return result;
+	}
+}
 
 export const getCrudoObject = (crudoReducer, objectName, objectId) => {
 	const id = `${objectId}`;

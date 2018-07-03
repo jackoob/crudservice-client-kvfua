@@ -15,5 +15,6 @@ export {
 	getCrudoRefObject,
 	getCrudoRefArray,
 	getCrudArray,
+	getCrudoObjectSelector,
 } from './crudo/utils';
 //export { default as SimpleColander } from './filtering/SimpleColander';
