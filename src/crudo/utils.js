@@ -1,18 +1,77 @@
+import { createSelector } from 'reselect';
 import { CrudoState } from './constants';
 import { fromJS } from 'immutable';
 
 const initialObjectState = fromJS({ crudoState: CrudoState.INITIAL });
+const loadingObjectState = fromJS({ crudoState: CrudoState.LOADING });
 
 export const getCrudoObjectSelector = (objectName, propsDataKey) => {
 	return (state, props) => {
 		const result = state.crudo.getIn([objectName, 'data', props[propsDataKey]]);
+		if (!result){
+			if (state.crudo.getIn([objectName,'crudoState'])==CrudoState.LOADING)
+				return loadingObjectState;
+		}
 		if (!result || !result.has('_id'))
 			return initialObjectState;
 		return result;
 	}
 }
 
+
+//-------------------------------------------------
+// internal selectors
+
+
+const crudoDataSelectorsByName = {};
+const crudoDataSelectorByName = ( objectName ) => {
+	if (!crudoDataSelectorsByName[objectName])	{
+		crudoDataSelectorsByName[objectName] = ( crudoReducer, id ) => {
+			return crudoReducer.getIn([objectName, 'data', id]);
+		}
+	}
+	return crudoDataSelectorsByName[objectName];
+};
+
+const crudoStateSelectorsByName = {};
+const crudoStateSelectorByName = ( objectName ) => {
+	if (!crudoStateSelectorsByName[objectName])	{
+		crudoStateSelectorsByName[objectName] = ( crudoReducer, id ) => {
+			let resultState = crudoReducer.getIn([objectName, 'data', id, 'crudoState']);
+			if (!resultState)
+				resultState = crudoReducer.getIn([objectName, 'crudoState']);
+			return resultState;
+		}
+	}
+	return crudoStateSelectorsByName[objectName];
+};
+
+
+//-------------------------------------------------
+
+const CRUDO_INITIAL = { crudoState: CrudoState.INITIAL }
+const CRUDO_FAIL = { crudoState: CrudoState.FAIL }
+
+
+const crudoSelectors = {};
+
 export const getCrudoObject = (crudoReducer, objectName, objectId) => {
+	if (!crudoSelectors[objectName]) crudoSelectors[objectName]={};
+	if (!crudoSelectors[objectName][objectId]){
+		crudoSelectors[objectName][objectId]=createSelector( 
+			[crudoStateSelectorByName(objectName), crudoDataSelectorByName(objectName)],
+			(crudoState, data) => {
+				if (!crudoState && !data) return { crudoState: CrudoState.INITIAL };
+				if (!data) return { crudoState };
+				// console.log("selector - "+objectName);
+				return Object.assign({}, {crudoState}, data.toJS() ); 
+			}
+		)
+	}
+	return crudoSelectors[objectName][objectId](crudoReducer, objectId);
+}
+
+export const getCrudoObjectOld = (crudoReducer, objectName, objectId) => {
 	const id = `${objectId}`;
 	let crudoState = crudoReducer.getIn([objectName, 'crudoState']);
 	const immuData = crudoReducer.getIn([objectName, 'data', id]);
@@ -26,6 +85,7 @@ export const getCrudoObject = (crudoReducer, objectName, objectId) => {
 	if (!immuData) return { crudoState };
 	const obj = immuData ? immuData.toJS() : { crudoState: CrudoState.FAIL };
 	const newObj = Object.assign({}, {crudoState}, obj );
+	// console.log("getCrudoObject - " + objectName);
 	return newObj;
 };
 
@@ -56,7 +116,8 @@ export const getCrudoRefObject = (crudoReducer, srcObject, parameter, referenceo
 	const immuData = crudoReducer.getIn([referenceobjectName, 'data', id]);
 	if (!immuData) return { crudoState };
 	const obj = immuData ? immuData.toJS() : { crudoState: CrudoState.FAIL };
-	return { ...obj, crudoState };
+	// console.log("getCrudoRefObject - " + referenceobjectName);
+	return { ...obj, crudoState };0
 };
 
 export const getCrudoRefArray = (crudoReducer, srcObject, parameter, referenceobjectName) => {
@@ -83,6 +144,8 @@ export const getCrudoRefArray = (crudoReducer, srcObject, parameter, referenceob
 			result.push(obj);
 		}
 	});
+	// console.log("getCrudoRefArray - " + referenceobjectName);
+
 	return { data: result, crudoState };
 };
 
@@ -97,5 +160,6 @@ export const getCrudArray = (crudoReducer, objectName) => {
 		if (!data[key].crudoState || data[key].crudoState === CrudoState.OK)
 			result.push(data[key]);
 	});
+	// console.log("getCrudArray - " + objectName);
 	return result;
 };

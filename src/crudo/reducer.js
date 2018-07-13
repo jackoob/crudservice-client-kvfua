@@ -226,12 +226,14 @@ const actionHandlers = {
 	}) {
 		// TODO: call success handler + update data
 		let newState = state;
-		const { id } = data;
+		// const { id } = data;
+		const storeBy = state.getIn([objectName, 'storeBy']);
+		const id = data[storeBy]
 		if (objectName && id) {
 			if (listName) {
 				let list = state.getIn([objectName, 'list']);
 				const idx = list.findIndex((value) => {
-					if (value.get('id') === id) {
+					if (value.get(storeBy) === id) {
 						return true;
 					}
 					return false;
