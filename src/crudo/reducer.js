@@ -105,6 +105,17 @@ const actionHandlers = {
 	},
 
 	//----------------------------------------------------------------------------
+	// invalidate data
+	//----------------------------------------------------------------------------
+	[actions.INVALIDATE_DATA](state, { objectName, ids }) {
+		if (!objectName || !ids || ids.length === 0) return state;
+		let result = state;
+		ids.forEach(id => {
+			result = result.setIn([objectName, 'data', id, 'crudoState'], CrudoState.INITIAL);
+		})
+		return result;
+	},
+	//----------------------------------------------------------------------------
 	// singleton
 	//----------------------------------------------------------------------------
 	[actions.GET_SINGLETON](state, { objectName }) {
@@ -275,10 +286,10 @@ const actionHandlers = {
 		return newState;
 	},
 
-	[actions.UPDATE_DATA_FAIL](state, { error, args }) {
+	[actions.UPDATE_DATA_FAIL](state, { error, args, response, data }) {
 		if (args && args.fail) {
 			setTimeout(() => {
-				args.fail(error);
+				args.fail(error, response, data);
 			}, 1);
 		}
 		return state;

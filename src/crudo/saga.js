@@ -313,6 +313,9 @@ export function* updateObject({ url, cookieToken, objectsMap, crudObjects }, arg
 				objectName,
 				listName,
 				error,
+				data,
+				args,
+				response,
 			});
 		}
 	} catch (exception) {
@@ -320,6 +323,8 @@ export function* updateObject({ url, cookieToken, objectsMap, crudObjects }, arg
 			type: actions.UPDATE_DATA_FAIL,
 			objectName,
 			listName,
+			args,
+			data,
 			error: exception,
 		});
 	}

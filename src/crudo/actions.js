@@ -19,6 +19,14 @@ export function getData( objectName, id, success, fail)  {
 	};
 }
 
+export function invalidateData( objectName, ids)  {
+	return {
+		type: actions.INVALIDATE_DATA,
+		objectName,
+		ids,
+	};
+}
+
 /**
  * Function calls the singleton endpoint of object "objectName" ant store's the result.
  * The data are actualized each time.
@@ -152,6 +160,7 @@ export function rpc( objectName, rpcName, data, success, fail)  {
 
 const crudo = {
 	getData,
+	invalidateData,
 	getSingleton,
 	createData,
 	updateData,
