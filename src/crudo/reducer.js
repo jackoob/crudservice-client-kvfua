@@ -233,7 +233,7 @@ const actionHandlers = {
 		return state;
 	},
 	[actions.UPDATE_DATA_SUCCESS](state, {
-		objectName, data, listName, args,
+		objectName, data, listName, args, response,
 	}) {
 		// TODO: call success handler + update data
 		let newState = state;
@@ -263,7 +263,7 @@ const actionHandlers = {
 					debug(`No object ${objectName} with id ${id} was found.`);
 					if (args && args.success) {
 						setTimeout(() => {
-							args.success(data);
+							args.success(data, response);
 						}, 1);
 					}
 					return state;
@@ -280,7 +280,7 @@ const actionHandlers = {
 		}
 		if (args && args.success) {
 			setTimeout(() => {
-				args.success(data);
+				args.success(data, response);
 			}, 1);
 		}
 		return newState;
