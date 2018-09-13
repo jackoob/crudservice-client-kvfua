@@ -69,18 +69,24 @@ const actionHandlers = {
 	// get
 	//----------------------------------------------------------------------------
 	[actions.GET_DATA](state, { objectName, id }) {
-		const gettingData = initObjectSate(state.getIn([objectName]));
-		gettingData.setIn('crudoState', CrudoState.LOADING);
+		let gettingData;
+		if (!state.hasIn([objectName, 'data', id])) {
+			gettingData = initObjectSate(state.getIn([objectName]));
+		}else{
+			gettingData = state.getIn([objectName, 'data', id])
+		}
+		gettingData= gettingData.setIn('crudoState', CrudoState.LOADING);
 		return state.setIn([objectName, 'data', id], gettingData);
 	},
 
 	[actions.GET_DATA_SUCCESS](state, { objectName, id, data, args }) {
 
 		const imData = fromJS(Object.assign({},data,{crudoState: CrudoState.OK}));
-		let itemData = state.getIn([objectName, 'data', id]);
-		if (!itemData) {
-			itemData = initObjectSate(state.getIn([objectName]));
-		}
+		let lastVersion = state.getIn([objectName, 'data', id, 'version']);
+		// if (!itemData) {
+		let itemData = initObjectSate(state.getIn([objectName]));
+		itemData.version = lastVersion ? lastVersion+1:1;
+		// }
 		itemData = itemData.merge(imData);
 		if (args && args.success) {
 			setTimeout(() => {
