@@ -243,6 +243,7 @@ const actionHandlers = {
 	}) {
 		// TODO: call success handler + update data
 		let newState = state;
+		let newData = response ? response.newData : undefined;
 		// const { id } = data;
 		const storeBy = state.getIn([objectName, 'storeBy']);
 		const id = data[storeBy]
@@ -257,7 +258,7 @@ const actionHandlers = {
 				});
 				if (idx >= 0) {
 					let mergeData = list.get(idx).toJS();
-					mergeData = Object.assign(mergeData, data);
+					mergeData = Object.assign(mergeData, data, newData);
 					list = list.set(idx, fromJS(mergeData));
 					newState = state.setIn([objectName, 'list'], list);
 				} else {
@@ -275,7 +276,7 @@ const actionHandlers = {
 					return state;
 				}
 				let mergeDataUpd = state.getIn([objectName, 'data', id]).toJS();
-				mergeDataUpd = Object.assign(mergeDataUpd, data);
+				mergeDataUpd = Object.assign(mergeDataUpd, data, newData);
 				mergeDataUpd.version = mergeDataUpd.version ? (mergeDataUpd.version+1):1; 
 				newState = state.setIn([objectName, 'data', id], fromJS(mergeDataUpd));
 			}

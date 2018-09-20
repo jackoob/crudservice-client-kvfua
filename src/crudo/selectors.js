@@ -51,7 +51,10 @@ const getJS = (objectName, immuObject) => {
 
 const wholeCrudSelectors = {};
 
-// eslint-disable-next-line
+/**
+ * Return the "state.crudo.${objectName}.toJS()", but optimalized on "toJS()" performance.
+ * @param {*} objectName 
+ */
 export const getWholeCrud = (objectName) => {
 	if (!wholeCrudSelectors[objectName]) {
 		wholeCrudSelectors[objectName] = createSelector(
@@ -86,7 +89,10 @@ export const getWholeCrud = (objectName) => {
 
 const crudDataSelectors = {};
 
-// eslint-disable-next-line
+/**
+ * Return the "state.crudo.${objectName}.data.toJS()", but optimalized for "toJS()" performance
+ * @param {*} objectName 
+ */
 export const getCrudData = (objectName) => {
 	if (!crudDataSelectors[objectName]) {
 		crudDataSelectors[objectName] = createSelector(
