@@ -16,6 +16,8 @@ export {
 	getCrudoRefArray,
 	getCrudArray,
 	getCrudoObjectSelector,
+	getCrudArrayOrdered,
+	orderComparator,
 } from './crudo/utils';
 
 export {

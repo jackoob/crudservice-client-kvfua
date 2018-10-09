@@ -1,6 +1,7 @@
 import { createSelector } from 'reselect';
 import { CrudoState } from './constants';
 import { fromJS } from 'immutable';
+import { getCrudData } from '..';
 
 const initialObjectState = fromJS({ crudoState: CrudoState.INITIAL });
 const loadingObjectState = fromJS({ crudoState: CrudoState.LOADING });
@@ -148,13 +149,17 @@ export const getCrudoRefArray = (crudoReducer, srcObject, parameter, referenceob
 
 	return { data: result, crudoState };
 };
-
+/**
+ *  TODO: optimalize with selectors
+ * @param {*} crudoReducer 
+ * @param {*} objectName 
+ */
 export const getCrudArray = (crudoReducer, objectName) => {
 	const crudoState = crudoReducer.getIn([objectName, 'crudoState']);
 	if (crudoState !== CrudoState.OK) return [];
 	const immuData = crudoReducer.getIn([objectName, 'data']);
 	if (!immuData) return [];
-	const result = [];
+	var result = [];
 	const data = immuData.toJS();
 	Object.keys(data).forEach((key) => {
 		if (!data[key].crudoState || data[key].crudoState === CrudoState.OK)
@@ -163,3 +168,51 @@ export const getCrudArray = (crudoReducer, objectName) => {
 	// console.log("getCrudArray - " + objectName);
 	return result;
 };
+
+
+
+const crudOrderedArraySelectors = {};
+ 
+
+export var getCrudArrayOrdered = function (state, objectName) {
+	if (!crudOrderedArraySelectors[objectName]) {
+		crudOrderedArraySelectors[objectName] = createSelector(
+			[getCrudData(objectName)],
+			(data) => {
+				var result = [];
+				if (!data) return result;
+				Object.keys(data).forEach(function (key) {
+					if (!data[key].crudoState || data[key].crudoState === CrudoState.OK) result.push(data[key]);
+				});
+				if (result.length >0){
+					result.sort(orderComparator);
+				}
+				return result;
+			},
+		);
+	}
+	return crudOrderedArraySelectors[objectName](state);
+}
+
+export const orderComparator = (a, b) => {
+	if (!a || !b){
+		if (!a && !b) return 0;
+		if (a)
+			return 1;
+		return -1;
+	}
+	if (!a._meta || !b._meta){
+		if (!a._meta && !b._meta) return 0;
+		if (a._meta)
+			return 1;
+		return -1;
+	}
+	if (!a._meta.order || !b._meta.order){
+		if (!a._meta.order && !b._meta.order) return 0;
+		if (a._meta.order)
+			return 1;
+		return -1;
+	}
+	
+
+}

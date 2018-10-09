@@ -9,7 +9,12 @@ const NULL = null;
 const wholeCrudSeletors = {};
 const wholeCrudSelector = (objectName) => {
 	if (!wholeCrudSeletors[objectName]) {
-		wholeCrudSeletors[objectName] = state => state.crudo.getIn([objectName]);
+		wholeCrudSeletors[objectName] = state => {
+			if (!state || !state.crudo){
+				throw "Can not find \"state.crudo\"";
+			}		
+			return state.crudo.getIn([objectName])
+		};
 	}
 	return wholeCrudSeletors[objectName];
 };

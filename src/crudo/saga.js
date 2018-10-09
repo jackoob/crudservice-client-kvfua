@@ -287,11 +287,13 @@ export function* updateObject({ url, cookieToken, objectsMap, crudObjects }, arg
 		const apiObject = getApiObject(objectsMap, objectName);
 		const key = getObjectIdentifier(data, crudObjects, objectName);
 		const api = `/${apiObject}/${key}`;
-
+		let sendData = Object.assign({},data);
+		delete sendData.crudoState;
+		delete sendData.version;
 		const fetchResponse = yield call(fetch, url + api, {
 			method: 'PUT',
 			headers: getHeaders(cookieToken),
-			body: JSON.stringify(data),
+			body: JSON.stringify(sendData),
 			credentials: 'include',
 		});
 
