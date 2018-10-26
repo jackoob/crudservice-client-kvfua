@@ -83,11 +83,10 @@ const actionHandlers = {
 
 		const imData = fromJS(Object.assign({},data,{crudoState: CrudoState.OK}));
 		let lastVersion = state.getIn([objectName, 'data', id, 'version']);
-		// if (!itemData) {
+
 		let itemData = initObjectSate(state.getIn([objectName]));
-		itemData.version = lastVersion ? lastVersion+1:1;
-		// }
 		itemData = itemData.merge(imData);
+		itemData = itemData.set('version',  lastVersion ? lastVersion+1:1);
 		if (args && args.success) {
 			setTimeout(() => {
 				args.success(data);
