@@ -101,9 +101,9 @@ const actionHandlers = {
 			itemData = initObjectSate(state.getIn([objectName]));
 		}
 		itemData = itemData.set('crudoState', CrudoState.FAIL).set('error', error);
-		if (args && args.success) {
+		if (args && args.fail) {
 			setTimeout(() => {
-				args.success(itemData);
+				args.fail(itemData);
 			}, 1);
 		}
 		return state.setIn([objectName,'data', id], itemData);
