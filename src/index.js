@@ -18,6 +18,8 @@ export {
 	getCrudoObjectSelector,
 	getCrudArrayOrdered,
 	orderComparator,
+	getObjectState,
+	objectNeedsToLoad,
 } from './crudo/utils';
 
 export {

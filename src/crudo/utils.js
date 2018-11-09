@@ -19,6 +19,9 @@ export const getCrudoObjectSelector = (objectName, propsDataKey) => {
 	}
 }
 
+export var getObjectState = (state, objectName) => { state.crudo.getIn([objectName, 'crudoState']) };
+export var objectNeedsToLoad = (state, objectName) => { state.crudo.getIn([objectName, 'crudoState']) === CrudoState.INITIAL };
+
 
 //-------------------------------------------------
 // internal selectors
@@ -149,8 +152,11 @@ export const getCrudoRefArray = (crudoReducer, srcObject, parameter, referenceob
 
 	return { data: result, crudoState };
 };
+
+const getCrudArraSelectors = {};
+
 /**
- *  TODO: optimalize with selectors
+ * TODO: optimalize with selectors
  * @param {*} crudoReducer 
  * @param {*} objectName 
  */
@@ -169,13 +175,20 @@ export const getCrudArray = (crudoReducer, objectName) => {
 	return result;
 };
 
-
-
 const crudOrderedArraySelectors = {};
- 
+const crudOrderedArrayComparators = {};
 
-export var getCrudArrayOrdered = function (state, objectName) {
-	if (!crudOrderedArraySelectors[objectName]) {
+/**
+ * Create selector for getting ordered data. There can be used custom comparator. 
+ * 
+ * @param {*} state 
+ * @param {*} objectName 
+ * @param {*} customSort 
+ */
+export var getCrudArrayOrdered = function (state, objectName, customComparator = null) {
+	let theComparator = customComparator ? customComparator : orderComparator;
+	if (crudOrderedArrayComparators[objectName] !== theComparator) {
+		crudOrderedArrayComparators[objectName] = theComparator;
 		crudOrderedArraySelectors[objectName] = createSelector(
 			[getCrudData(objectName)],
 			(data) => {
@@ -184,8 +197,8 @@ export var getCrudArrayOrdered = function (state, objectName) {
 				Object.keys(data).forEach(function (key) {
 					if (!data[key].crudoState || data[key].crudoState === CrudoState.OK) result.push(data[key]);
 				});
-				if (result.length >0){
-					result.sort(orderComparator);
+				if (result.length > 0) {
+					result.sort(theComparator);
 				}
 				return result;
 			},
@@ -207,12 +220,12 @@ export const orderComparator = (a, b) => {
 			return 1;
 		return -1;
 	}
-	if (!a._meta.order || !b._meta.order){
+	if (!a._meta.order || !b._meta.order) {
 		if (!a._meta.order && !b._meta.order) return 0;
 		if (a._meta.order)
 			return 1;
 		return -1;
 	}
-	
 
+	return a._meta.order - !b._meta.order;
 }
