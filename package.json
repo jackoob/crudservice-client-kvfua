@@ -32,8 +32,8 @@
     "cross-env": "^5.1.3",
     "expect": "^22.0.3",
     "nwb": "0.18.x",
-    "react": "^16.2.0",
-    "react-dom": "^16.2.0"
+    "react": "16.8.0-alpha.1",
+    "react-dom": "16.8.0-alpha.1"
   },
   "keywords": [
     "react-component"
@@ -42,7 +42,7 @@
     "build": "cross-env NODE_ENV=production npm run build:commonjs && npm run build:es",
     "build:dev": "cross-env NODE_ENV=development npm run build:commonjs:dev",
     "build:commonjs": "cross-env BABEL_ENV=commonjs babel src --out-dir dist/lib",
-    "build:commonjs:dev": "cross-env babel src --out-dir dist/lib --watch",
+    "build:commonjs:dev": "cross-env babel src --out-dir dist/lib --watch --source-maps",
     "build:commonjs:watch": "npm run build:commonjs -- --watch",
     "build:es": "cross-env BABEL_ENV=es babel src --out-dir dist/es",
     "build:es:dev": "cross-env babel src --out-dir dist/es --watch",

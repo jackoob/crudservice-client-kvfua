@@ -290,6 +290,8 @@ export function* updateObject({ url, cookieToken, objectsMap, crudObjects }, arg
 		let sendData = Object.assign({},data);
 		delete sendData.crudoState;
 		delete sendData.version;
+		if (sendData.id && !sendData._id) sendData._id = sendData.id;
+		delete sendData.id;
 		const fetchResponse = yield call(fetch, url + api, {
 			method: 'PUT',
 			headers: getHeaders(cookieToken),
