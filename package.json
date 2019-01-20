@@ -17,9 +17,10 @@
     "prop-types": "^15.6.0",
     "redux-saga": "^0.16.0"
   },
-  "peerDependencies": {
-    "react": "15.x"
-  },
+	"peerDependencies": {
+		"react": "16.8.0-alpha.1",
+		"react-dom": "16.8.0-alpha.1"
+	},
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
