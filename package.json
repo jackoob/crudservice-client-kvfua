@@ -1,6 +1,6 @@
 {
   "name": "crudservice-client",
-  "version": "0.2.47",
+  "version": "0.2.48",
   "private": true,
   "author": "Grappes s.r.o.",
   "description": "Grappes Crud client service for Crudo backend",
@@ -17,10 +17,10 @@
     "prop-types": "^15.6.0",
     "redux-saga": "^0.16.0"
   },
-	"peerDependencies": {
-		"react": "16.8.0-alpha.1",
-		"react-dom": "16.8.0-alpha.1"
-	},
+  "peerDependencies": {
+    "react": "16.8.0-alpha.1",
+    "react-dom": "16.8.0-alpha.1"
+  },
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
