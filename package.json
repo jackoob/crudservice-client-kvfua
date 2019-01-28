@@ -15,7 +15,8 @@
   "dependencies": {
     "immutable": "^3.8.2",
     "prop-types": "^15.6.0",
-    "redux-saga": "^0.16.0"
+    "redux-saga": "^0.16.0",
+    "reselect": "^4.0.0"
   },
   "peerDependencies": {
     "react": "16.8.0-alpha.1",
