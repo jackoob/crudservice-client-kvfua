@@ -265,6 +265,7 @@ export function* createObject({ url, cookieToken, objectsMap }, args) {
 				response,
 			});
 		}
+		yield* checkAndProcessCallbacks(response);
 	} catch (exception) {
 		const error = {
 			status: 404,
@@ -325,6 +326,8 @@ export function* updateObject({ url, cookieToken, objectsMap, crudObjects }, arg
 				response,
 			});
 		}
+		yield* checkAndProcessCallbacks(response);
+
 	} catch (exception) {
 		yield put({
 			type: actions.UPDATE_DATA_FAIL,
@@ -365,6 +368,7 @@ export function* deleteObject({ url, cookieToken, objectsMap }, args) {
 				id,
 				args,
 			});
+			
 		} else {
 			yield put({
 				type: actions.DELETE_DATA_FAIL,
@@ -373,6 +377,7 @@ export function* deleteObject({ url, cookieToken, objectsMap }, args) {
 				args,
 			});
 		}
+		yield* checkAndProcessCallbacks(response);
 	} catch (exception) {
 		yield put({
 			type: actions.DELETE_DATA_FAIL,
@@ -408,10 +413,12 @@ export function* callRPC({ url, cookieToken, objectsMap }, args) {
 
 			if (success) {
 				success(response.data);
+				yield* checkAndProcessCallbacks(response);
 			}
 		} else {
 			if (fail) {
 				fail(error);
+				yield* checkAndProcessCallbacks(response);
 			}
 		}
 	} catch (exception) {
@@ -421,6 +428,14 @@ export function* callRPC({ url, cookieToken, objectsMap }, args) {
 	}
 }
 
+function* checkAndProcessCallbacks(response) {
+	if (response && response.callbacks && Array.isArray(response.callbacks)) {
+		yield put({
+			type: actions.PROCESS_CALLBACKS,
+			callbacks:response.callbacks,
+		});
+	}
+}
 
 
 // export sagas
