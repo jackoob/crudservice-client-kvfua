@@ -173,6 +173,7 @@ const actionHandlers = {
 		} else {
 			const storeBy = state.getIn([objectName, 'storeBy']);
 			data.forEach((item) => {
+				if (!item) return;
 				let inputItem = item;
 				let itemId = inputItem[storeBy];
 				if (!itemId) {
