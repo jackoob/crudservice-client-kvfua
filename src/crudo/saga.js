@@ -3,11 +3,26 @@ import { call, put, takeEvery } from 'redux-saga/effects';
 import urlResolve from "url";
 import { delay } from 'redux-saga';
 import { actions } from './constants';
-//import { getCookie } from '../../utils/cookie';
 
-//import { url } from '../../config';
-
-
+/**
+ * Prepare initial configurations of objects for saga.  Sample objects is mixed array, wher item can be string 
+ * or object with "key", eg:
+ * [
+		'shop', - object name
+		{
+			key: 'shopItem', - object name
+			storeBy: 'key', - "key" attribute of "shopItem", that will be used as identification on client side, it is used as default object identification 
+			remoteIdentification: '_id' - if server is not prepared to manipulate the object by parameter "key", this attribute defines, which attribute is use as object identification on server side
+		},
+		{
+			key: 'invoice', - object name
+		    server: 'pay',  - server is different from default, it's alias is "pay"
+		}
+	],
+ * 
+ * 
+ * @param {*} objects 
+ */
 export function prepareObjectsConfig(objects) {
 	let result = {};
 	objects.forEach(objectInit => {
@@ -36,6 +51,10 @@ export function getCookie(cname) {
 	return null;
 }
 
+/**
+ * Return default header for fetch request.
+ * @param {*} cookieToken 
+ */
 const getHeaders = (cookieToken) => {
 	const headers = {
 		Accept: 'application/json, text/plain, */*',
@@ -44,6 +63,12 @@ const getHeaders = (cookieToken) => {
 	return headers;
 };
 
+/**
+ * Object can have different name on server. This allows to name one object on server by many different names in client.
+ * This function will get the correct object's server name by the "objectName"
+ * @param {*} objectsMap 
+ * @param {*} objectName 
+ */
 const getApiObject = (objectsMap, objectName) => {
 	let apiObject = objectName;
 	if (Object.prototype.hasOwnProperty.call(objectsMap, objectName)) {
@@ -74,7 +99,14 @@ const getObjectIdentifier = (data, crudObjects, objectName) => {
 
 };
 
-
+/**
+ * Function will find and return server, where the object "objectName" is stored.
+ * 
+ * @param {*} defaultServerUrl the default server url used if "objectName" has not defined specific server
+ * @param {*} crudObjects objects definition
+ * @param {*} objectName object name
+ * @param {*} servers object, which properties are server names used in object definitions.
+ */
 const getServer = (defaultServerUrl, crudObjects, objectName, servers = {}) => {
 	if (!objectName) {
 		throw "Object " + objectName + " is undefined.";
@@ -104,8 +136,6 @@ export function* getObject({ url, cookieToken, objectsMap, crudObjects, servers 
 		const apiObject = getApiObject(objectsMap, objectName);
 		const serverUrl = getServer(url, crudObjects,  apiObject, servers);
 		const api = urlResolve.resolve(serverUrl, `${apiObject}/${id}` );
-		// const api = `${serverUrl}/${apiObject}/${id}`;
-		
 
 		const fetchResponse = yield call(fetch, api, {
 			method: 'GET',
@@ -114,8 +144,6 @@ export function* getObject({ url, cookieToken, objectsMap, crudObjects, servers 
 		});
 		const response = yield call([fetchResponse, fetchResponse.json]);
 
-		// console.log(response);
-		// if (response && response.status === 'success') {
 		if (fetchResponse.ok) {
 			const { data } = response;
 			yield put({
@@ -168,7 +196,6 @@ export function* getSingleton({ url, cookieToken, objectsMap, crudObjects, serve
 		});
 		const response = yield call([fetchResponse, fetchResponse.json]);
 
-		// if (response && response.status === 'success') {
 		if (fetchResponse.ok) {
 			const { data } = response;
 			yield put({
@@ -204,7 +231,6 @@ export function* listData({ url, cookieToken, objectsMap, crudObjects, servers }
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
 		const serverUrl = getServer(url, crudObjects,  apiObject, servers);
-		// const api = `${serverUrl}/${apiObject}/all`;
 		const api = urlResolve.resolve(serverUrl, `${apiObject}/all`);
 
 		const fetchResponse = yield call(fetch, api, {
@@ -214,7 +240,6 @@ export function* listData({ url, cookieToken, objectsMap, crudObjects, servers }
 		});
 
 		const response = yield call([fetchResponse, fetchResponse.json]);
-		// console.log(response);
 
 		const error = { error: 'Problem with calling server' };
 		if (response && response.status === 'success') {
@@ -260,7 +285,6 @@ export function* createObject({ url, cookieToken, objectsMap, crudObjects, serve
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
 		const serverUrl = getServer(url, crudObjects,  apiObject, servers);
-		// const api = `${serverUrl}/${apiObject}/create`;
 		const api = urlResolve.resolve(serverUrl, `${apiObject}/create`);
 
 		const fetchResponse = yield call(fetch,  api, {
@@ -315,9 +339,7 @@ export function* updateObject({ url, cookieToken, objectsMap, crudObjects, serve
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
 		const key = getObjectIdentifier(data, crudObjects, objectName);
-		// const key = getObjectIdentifier(servers, crudObjects, objectName);
 		const serverUrl = getServer(url, crudObjects,  apiObject, servers);
-		// const api = `${serverUrl}/${apiObject}/${key}`;
 		const api = urlResolve.resolve(serverUrl,`${apiObject}/${key}`);
 
 
@@ -382,7 +404,6 @@ export function* deleteObject({ url, cookieToken, objectsMap, crudObjects, serve
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
 		const serverUrl = getServer(url, crudObjects, apiObject, servers);
-		// const api = `${serverUrl}/${apiObject}/${id}`;
 		const api = urlResolve.resolve(serverUrl, `${apiObject}/${id}` );
 
 		const fetchResponse = yield call(fetch, api, {
@@ -431,7 +452,6 @@ export function* callRPC({ url, cookieToken, objectsMap, crudObjects, servers}, 
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
 		const serverUrl = getServer(url, crudObjects, apiObject, servers);
-		// const api = `${serverUrl}/${apiObject}/${rpcName}`;
 		const api = urlResolve.resolve(serverUrl, `${apiObject}/${rpcName}`);
 		const headers = getHeaders(cookieToken);
 		console.log(headers);
