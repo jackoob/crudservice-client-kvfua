@@ -454,7 +454,7 @@ export function* callRPC({ url, cookieToken, objectsMap, crudObjects, servers}, 
 		const serverUrl = getServer(url, crudObjects, apiObject, servers);
 		const api = urlResolve.resolve(serverUrl, `${apiObject}/${rpcName}`);
 		const headers = getHeaders(cookieToken);
-		console.log(headers);
+		// console.log(headers);
 		
 		let fetchData = {
 			method: 'POST',
