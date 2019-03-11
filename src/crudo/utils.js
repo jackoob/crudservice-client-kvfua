@@ -31,6 +31,9 @@ const crudoDataSelectorsByName = {};
 const crudoDataSelectorByName = ( objectName ) => {
 	if (!crudoDataSelectorsByName[objectName])	{
 		crudoDataSelectorsByName[objectName] = ( crudoReducer, id ) => {
+			if (Array.isArray(id)) {
+				return crudoReducer.getIn([objectName, 'data', ...id]);
+			}
 			return crudoReducer.getIn([objectName, 'data', id]);
 		}
 	}
@@ -41,7 +44,11 @@ const crudoStateSelectorsByName = {};
 const crudoStateSelectorByName = ( objectName ) => {
 	if (!crudoStateSelectorsByName[objectName])	{
 		crudoStateSelectorsByName[objectName] = ( crudoReducer, id ) => {
-			let resultState = crudoReducer.getIn([objectName, 'data', id, 'crudoState']);
+			let resultState = null;
+			if (Array.isArray(id))
+				resultState = crudoReducer.getIn([objectName, 'data', ...id, 'crudoState']);
+			else
+				resultState = crudoReducer.getIn([objectName, 'data', id, 'crudoState']);
 			if (!resultState)
 				resultState = crudoReducer.getIn([objectName, 'crudoState']);
 			return resultState;
@@ -56,13 +63,19 @@ const crudoStateSelectorByName = ( objectName ) => {
 const CRUDO_INITIAL = { crudoState: CrudoState.INITIAL }
 const CRUDO_FAIL = { crudoState: CrudoState.FAIL }
 
-
+const getObjecId= (id) => {
+	if (Array.isArray(id)){
+		return id.join(";");
+	}
+	return id;
+}
 const crudoSelectors = {};
 
 export const getCrudoObject = (crudoReducer, objectName, objectId) => {
+	let id = getObjecId(objectId);
 	if (!crudoSelectors[objectName]) crudoSelectors[objectName]={};
-	if (!crudoSelectors[objectName][objectId]){
-		crudoSelectors[objectName][objectId]=createSelector( 
+	if (!crudoSelectors[objectName][id]){
+		crudoSelectors[objectName][id]=createSelector( 
 			[crudoStateSelectorByName(objectName), crudoDataSelectorByName(objectName)],
 			(crudoState, data) => {
 				if (!crudoState && !data) return { crudoState: CrudoState.INITIAL };
@@ -72,18 +85,22 @@ export const getCrudoObject = (crudoReducer, objectName, objectId) => {
 			}
 		)
 	}
-	return crudoSelectors[objectName][objectId](crudoReducer, objectId);
+	return crudoSelectors[objectName][id](crudoReducer, objectId);
 }
 
 export const getCrudoObjectOld = (crudoReducer, objectName, objectId) => {
-	const id = `${objectId}`;
+	let id = null;
+	if (Array.isArray(objectId))
+		id = objectId;
+	else
+		id = [`${objectId}`];
 	let crudoState = crudoReducer.getIn([objectName, 'crudoState']);
-	const immuData = crudoReducer.getIn([objectName, 'data', id]);
+	let immuData = crudoReducer.getIn([objectName, 'data', ...id]);
 	// object can have it's own state. If it has, preffer this state
 	if (immuData && immuData.has('crudoState')){
-			crudoState=immuData.get('crudoState');
+		crudoState = immuData.get('crudoState');
 	}
-	if (!crudoState && !immuData){
+	if (!crudoState && !immuData) {
 		 return { crudoState: CrudoState.INITIAL };
 	}
 	if (!immuData) return { crudoState };

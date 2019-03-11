@@ -11,7 +11,7 @@ import { actions } from './constants';
 		'shop', - object name
 		{
 			key: 'shopItem', - object name
-			storeBy: 'key', - "key" attribute of "shopItem", that will be used as identification on client side, it is used as default object identification 
+			storeBy: 'key', - "key" attribute of "shopItem", that will be used as identification on client side, it is used as default object identification. It is used in UPDATE and LIST functions.
 			remoteIdentification: '_id' - if server is not prepared to manipulate the object by parameter "key", this attribute defines, which attribute is use as object identification on server side
 		},
 		{
@@ -99,6 +99,24 @@ const getObjectIdentifier = (data, crudObjects, objectName) => {
 
 };
 
+const getObjectUrlId = (id, crudObjects, objectName) => {
+	if (!Array.isArray(id))
+		return id;
+	let storeByIds = crudObjects[objectName].storeBy;
+	if (!Array.isArray(storeByIds)){
+		throw new Error(`Object '${objectName}' expects one identificator. Change "storeBy" of '${objectName}' into array in CRUD object config or send only object identfication (instead of array) .`);
+	}
+	let result=`${id[0]}?`;
+
+	for (let i = 1; i < storeByIds.length; i++) {
+		if (id[i]){
+			result=result+`${storeByIds[i]}=${id[i]}&`;
+		}
+	}
+	return result;
+
+}
+
 /**
  * Function will find and return server, where the object "objectName" is stored.
  * 
@@ -135,7 +153,8 @@ export function* getObject({ url, cookieToken, objectsMap, crudObjects, servers 
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
 		const serverUrl = getServer(url, crudObjects,  apiObject, servers);
-		const api = urlResolve.resolve(serverUrl, `${apiObject}/${id}` );
+
+		const api = urlResolve.resolve(serverUrl, `${apiObject}/${getObjectUrlId(id, crudObjects, objectName)}` );
 
 		const fetchResponse = yield call(fetch, api, {
 			method: 'GET',
