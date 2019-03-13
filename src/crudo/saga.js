@@ -106,14 +106,14 @@ const getObjectUrlId = (id, crudObjects, objectName) => {
 	if (!Array.isArray(storeByIds)){
 		throw new Error(`Object '${objectName}' expects one identificator. Change "storeBy" of '${objectName}' into array in CRUD object config or send only object identfication (instead of array) .`);
 	}
-	let result=`${id[0]}?`;
+	let res=`${id[0]}?`;
 
 	for (let i = 1; i < storeByIds.length; i++) {
-		if (id[i]){
-			result=result+`${storeByIds[i]}=${id[i]}&`;
+		if (id[i]) {
+			res += `${storeByIds[i]}=${id[i]}&`;
 		}
 	}
-	return result;
+	return res;
 
 }
 
