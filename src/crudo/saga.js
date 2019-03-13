@@ -103,10 +103,12 @@ const getObjectUrlId = (id, crudObjects, objectName) => {
 	if (!Array.isArray(id))
 		return id;
 	let storeByIds = crudObjects[objectName].storeBy;
+	
+	var res=`${id[0]}?`;// do not move this line next to the forcycle. The compilator will include this line into initialization of for-loop and the "return" will be broken.
+
 	if (!Array.isArray(storeByIds)){
 		throw new Error(`Object '${objectName}' expects one identificator. Change "storeBy" of '${objectName}' into array in CRUD object config or send only object identfication (instead of array) .`);
 	}
-	let res=`${id[0]}?`;
 
 	for (let i = 1; i < storeByIds.length; i++) {
 		if (id[i]) {
