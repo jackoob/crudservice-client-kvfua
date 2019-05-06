@@ -473,14 +473,14 @@ export function* callRPC({ url, cookieToken, objectsMap, crudObjects, servers}, 
 
 			if (success) {
 				success(response.data);
-				yield* checkAndProcessCallbacks(response);
 			}
 		} else {
 			if (fail) {
 				fail(error);
-				yield* checkAndProcessCallbacks(response);
 			}
 		}
+		yield* checkAndProcessCallbacks(response);
+		
 	} catch (exception) {
 		if (fail) {
 			fail(exception, {});
