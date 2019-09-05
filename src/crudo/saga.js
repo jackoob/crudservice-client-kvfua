@@ -28,7 +28,7 @@ export function prepareObjectsConfig(objects) {
 	objects.forEach(objectInit => {
 		if (typeof objectInit === "object") {
 			if (objectInit.key) {
-				result[objectInit.key] = Object.assign({},objectInit);
+				result[objectInit.key] = Object.assign({}, objectInit);
 				delete result[objectInit.key].key;
 			}
 		}
@@ -85,7 +85,7 @@ const getObjectIdentifier = (data, crudObjects, objectName) => {
 	if (!crudObjects[objectName] || !crudObjects[objectName].storeBy) {
 		id = data.id;
 		if (!id) id = data._id;
-		
+
 	} else {
 		let remoteStoreBy = crudObjects[objectName].storeBy;
 		if (crudObjects[objectName].remoteIdentification)
@@ -103,10 +103,10 @@ const getObjectUrlId = (id, crudObjects, objectName) => {
 	if (!Array.isArray(id))
 		return id;
 	let storeByIds = crudObjects[objectName].storeBy;
-	
-	var res=`${id[0]}?`;// do not move this line next to the forcycle. The compilator will include this line into initialization of for-loop and the "return" will be broken.
 
-	if (!Array.isArray(storeByIds)){
+	var res = `${id[0]}?`;// do not move this line next to the forcycle. The compilator will include this line into initialization of for-loop and the "return" will be broken.
+
+	if (!Array.isArray(storeByIds)) {
 		throw new Error(`Object '${objectName}' expects one identificator. Change "storeBy" of '${objectName}' into array in CRUD object config or send only object identfication (instead of array) .`);
 	}
 
@@ -150,19 +150,22 @@ const getServer = (defaultServerUrl, crudObjects, objectName, servers = {}) => {
 };
 
 
-export function* getObject({ url, cookieToken, objectsMap, crudObjects, servers }, args) {
+export function* getObject({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, args) {
 	const { objectName, id } = args;
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
-		const serverUrl = getServer(url, crudObjects,  apiObject, servers);
+		const serverUrl = getServer(url, crudObjects, apiObject, servers);
 
-		const api = urlResolve.resolve(serverUrl, `${apiObject}/${getObjectUrlId(id, crudObjects, objectName)}` );
-
-		const fetchResponse = yield call(fetch, api, {
+		const api = urlResolve.resolve(serverUrl, `${apiObject}/${getObjectUrlId(id, crudObjects, objectName)}`);
+		let fetchData = {
 			method: 'GET',
 			headers: getHeaders(cookieToken),
 			credentials: 'include',
-		});
+		};
+		if (customizeFetchRequest) {
+			fetchData = customizeFetchRequest(fetchData, actions.GET_DATA);
+		}
+		const fetchResponse = yield call(fetch, api, fetchData );
 		const response = yield call([fetchResponse, fetchResponse.json]);
 
 		if (fetchResponse.ok) {
@@ -200,21 +203,26 @@ export function* getObject({ url, cookieToken, objectsMap, crudObjects, servers 
 	}
 }
 
-export function* getSingleton({ url, cookieToken, objectsMap, crudObjects, servers }, args) {
+export function* getSingleton({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, args) {
 	const { objectName, params } = args;
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
-		const serverUrl = getServer(url, crudObjects,  apiObject, servers);
+		const serverUrl = getServer(url, crudObjects, apiObject, servers);
 		// const api = `${serverUrl}/${apiObject}/singleton`;
 		const api = urlResolve.resolve(serverUrl, `${apiObject}/singleton`);
 
-
-		const fetchResponse = yield call(fetch, api, {
+		let fetchData = {
 			method: 'POST',
 			headers: getHeaders(cookieToken),
 			body: JSON.stringify(params),
 			credentials: 'include',
-		});
+		};
+
+		if (customizeFetchRequest) {
+			fetchData = customizeFetchRequest(fetchData, actions.GET_SINGLETON);
+		}
+
+		const fetchResponse = yield call(fetch, api, fetchData);
 		const response = yield call([fetchResponse, fetchResponse.json]);
 
 		if (fetchResponse.ok) {
@@ -248,17 +256,22 @@ export function* getSingleton({ url, cookieToken, objectsMap, crudObjects, serve
 		});
 	}
 }
-export function* listData({ url, cookieToken, objectsMap, crudObjects, servers }, { objectName, listName }) {
+export function* listData({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, { objectName, listName }) {
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
-		const serverUrl = getServer(url, crudObjects,  apiObject, servers);
+		const serverUrl = getServer(url, crudObjects, apiObject, servers);
 		const api = urlResolve.resolve(serverUrl, `${apiObject}/all`);
 
-		const fetchResponse = yield call(fetch, api, {
+		let fetchData =  {
 			method: 'GET',
 			headers: getHeaders(cookieToken),
 			credentials: 'include',
-		});
+		};
+		if (customizeFetchRequest) {
+			fetchData = customizeFetchRequest(fetchData, actions.LIST_DATA);
+		}
+
+		const fetchResponse = yield call(fetch, api, fetchData);
 
 		const response = yield call([fetchResponse, fetchResponse.json]);
 
@@ -301,19 +314,24 @@ const getErrorResponse = (fetchResponse, responseData) => {
 	};
 };
 
-export function* createObject({ url, cookieToken, objectsMap, crudObjects, servers }, args) {
+export function* createObject({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, args) {
 	const { objectName, data } = args;
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
-		const serverUrl = getServer(url, crudObjects,  apiObject, servers);
+		const serverUrl = getServer(url, crudObjects, apiObject, servers);
 		const api = urlResolve.resolve(serverUrl, `${apiObject}/create`);
 
-		const fetchResponse = yield call(fetch,  api, {
+		let fetchData = {
 			method: 'POST',
 			headers: getHeaders(cookieToken),
 			body: JSON.stringify(data),
 			credentials: 'include',
-		});
+		};
+		if (customizeFetchRequest) {
+			fetchData = customizeFetchRequest(fetchData, actions.CREATE_DATA);
+		}
+
+		const fetchResponse = yield call(fetch, api, fetchData);
 		const response = yield call([fetchResponse, fetchResponse.json]);
 
 		// if (response && response.status === 'success') {
@@ -354,27 +372,35 @@ export function* createObject({ url, cookieToken, objectsMap, crudObjects, serve
 	}
 }
 
-export function* updateObject({ url, cookieToken, objectsMap, crudObjects, servers}, args) {
+export function* updateObject({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, args) {
 	const { objectName, listName, data } = args;
 
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
 		const key = getObjectIdentifier(data, crudObjects, objectName);
-		const serverUrl = getServer(url, crudObjects,  apiObject, servers);
-		const api = urlResolve.resolve(serverUrl,`${apiObject}/${key}`);
+		const serverUrl = getServer(url, crudObjects, apiObject, servers);
+		const api = urlResolve.resolve(serverUrl, `${apiObject}/${key}`);
 
 
-		let sendData = Object.assign({},data);
+		let sendData = Object.assign({}, data);
 		delete sendData.crudoState;
 		delete sendData.version;
 		if (sendData.id && !sendData._id) sendData._id = sendData.id;
 		delete sendData.id;
-		const fetchResponse = yield call(fetch, api, {
+
+
+		let fetchData = {
 			method: 'PUT',
 			headers: getHeaders(cookieToken),
 			body: JSON.stringify(sendData),
 			credentials: 'include',
-		});
+		};
+		if (customizeFetchRequest) {
+			fetchData = customizeFetchRequest(fetchData, actions.UPDATE_DATA);
+		}
+
+	
+		const fetchResponse = yield call(fetch, api, fetchData);
 
 		// ------------------------------------------------------------------------
 
@@ -389,7 +415,7 @@ export function* updateObject({ url, cookieToken, objectsMap, crudObjects, serve
 				listName,
 				data,
 				args,
-				response,				
+				response,
 			});
 		} else {
 			yield put({
@@ -419,19 +445,24 @@ export function* updateObject({ url, cookieToken, objectsMap, crudObjects, serve
 
 
 
-export function* deleteObject({ url, cookieToken, objectsMap, crudObjects, servers }, args) {
+export function* deleteObject({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, args) {
 	const { objectName, id } = args;
 
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
 		const serverUrl = getServer(url, crudObjects, apiObject, servers);
-		const api = urlResolve.resolve(serverUrl, `${apiObject}/${id}` );
+		const api = urlResolve.resolve(serverUrl, `${apiObject}/${id}`);
 
-		const fetchResponse = yield call(fetch, api, {
+		let fetchData = {
 			method: 'DELETE',
 			headers: getHeaders(cookieToken),
 			credentials: 'include',
-		});
+		};
+		if (customizeFetchRequest) {
+			fetchData = customizeFetchRequest(fetchData, actions.DELETE_DATA);
+		}
+		
+		const fetchResponse = yield call(fetch, api, fetchData);
 
 		// ------------------------------------------------------------------------
 
@@ -445,7 +476,7 @@ export function* deleteObject({ url, cookieToken, objectsMap, crudObjects, serve
 				id,
 				args,
 			});
-			
+
 		} else {
 			yield put({
 				type: actions.DELETE_DATA_FAIL,
@@ -467,7 +498,7 @@ export function* deleteObject({ url, cookieToken, objectsMap, crudObjects, serve
 
 
 
-export function* callRPC({ url, cookieToken, objectsMap, crudObjects, servers}, args) {
+export function* callRPC({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, args) {
 	const { objectName, rpcName, data, success, fail } = args;
 
 	try {
@@ -476,7 +507,7 @@ export function* callRPC({ url, cookieToken, objectsMap, crudObjects, servers}, 
 		const api = urlResolve.resolve(serverUrl, `${apiObject}/${rpcName}`);
 		const headers = getHeaders(cookieToken);
 		// console.log(headers);
-		
+
 		let fetchData = {
 			method: 'POST',
 			headers: headers,
@@ -484,6 +515,9 @@ export function* callRPC({ url, cookieToken, objectsMap, crudObjects, servers}, 
 			credentials: 'include',
 		};
 
+		if (customizeFetchRequest) {
+			fetchData = customizeFetchRequest(fetchData, actions.RPC);
+		}
 		const fetchResponse = yield call(fetch, api, fetchData);
 		// ------------------------------------------------------------------------
 
@@ -501,7 +535,7 @@ export function* callRPC({ url, cookieToken, objectsMap, crudObjects, servers}, 
 			}
 		}
 		yield* checkAndProcessCallbacks(response);
-		
+
 	} catch (exception) {
 		if (fail) {
 			fail(exception, {});
@@ -513,13 +547,34 @@ function* checkAndProcessCallbacks(response) {
 	if (response && response.callbacks && Array.isArray(response.callbacks)) {
 		yield put({
 			type: actions.PROCESS_CALLBACKS,
-			callbacks:response.callbacks,
+			callbacks: response.callbacks,
 		});
 	}
 }
 
-
 // export sagas
+/**
+ * Saga params contains:
+ *  url - the server url
+ *  cookieToken - cookie token, if it is used
+ *  objectsMap - map of object names (aliases)
+ *  crudObjects - definition of crudo objects  it can be string (name of crud object), or object:
+ *     - key - name of crud object
+ *     - storeBy - attribute of object tha
+ *     - remoteIdentification - id attribute for getting from server, if it is different from "storedBy", used in update
+ *     - server - where the object is stored in)
+ *  servers - list of serers
+ *  customizeFetchRequest (fetchData, action)- function, that can customize the request's fetchData
+ *    - sample fetchData:
+ * 			{ method: 'POST',
+ * 			headers: headers,
+ * 			body: JSON.stringify(data),
+ * 			credentials: 'include' }
+ *	  - action:  actions.GET_DATA|GET_SINGLETON|LIST_DATA|CREATE_DATA|UPDATE_DATA|DELETE_DATA|RPC
+ * 
+ * 
+ * @param {*} rawSagaParams 
+ */
 export const getCudoSaga = (rawSagaParams) => {
 	const sagaParams = Object.assign({}, rawSagaParams);
 	sagaParams.crudObjects = prepareObjectsConfig(rawSagaParams.crudObjects);
