@@ -9,13 +9,14 @@ import { actions } from './constants';
  * @param {Function} success 
  * @param {Function} fail 
  */
-export function getData( objectName, id, success, fail)  {
+export function getData( objectName, id, success, fail, query)  {
 	return {
 		type: actions.GET_DATA,
 		objectName,
 		id,
 		success,
 		fail,
+		query,
 	};
 }
 
@@ -34,11 +35,12 @@ export function invalidateData( objectName, ids)  {
  * @param {string} objectName 
  * @param {*} params 
  */
-export function getSingleton( objectName, params) {
+export function getSingleton( objectName, params, query) {
 	return {
 		type: actions.GET_SINGLETON,
 		objectName,
 		params,
+		query
 	};
 }
 
@@ -50,13 +52,14 @@ export function getSingleton( objectName, params) {
  * @param {Function} success 
  * @param {Function} fail 
  */
-export function createData(objectName, data, success, fail) {
+export function createData(objectName, data, success, fail, query) {
 	return {
 		type: actions.CREATE_DATA,
 		objectName,
 		data,
 		success,
 		fail,
+		query,
 	};
 }
 
@@ -68,13 +71,14 @@ export function createData(objectName, data, success, fail) {
  * @param {Function} success 
  * @param {Function} fail 
  */
-export function updateData(objectName, data, success, fail) {
+export function updateData(objectName, data, success, fail, query) {
 	return {
 		type: actions.UPDATE_DATA,
 		objectName,
 		data,
 		success,
 		fail,
+		query,
 	};
 }
 
@@ -87,7 +91,7 @@ export function updateData(objectName, data, success, fail) {
  * @param {Function} success 
  * @param {Function} fail 
  */
-export function updateListData(objectName, listName, data, success, fail) {
+export function updateListData(objectName, listName, data, success, fail, query) {
 	return {
 		type: actions.UPDATE_DATA,
 		listName,
@@ -95,6 +99,7 @@ export function updateListData(objectName, listName, data, success, fail) {
 		data,
 		success,
 		fail,
+		query,
 	};
 }
 
@@ -106,13 +111,14 @@ export function updateListData(objectName, listName, data, success, fail) {
  * @param {Function} success 
  * @param {Function} fail 
  */
-export function deleteData(objectName, id, success, fail) {
+export function deleteData(objectName, id, success, fail, query) {
 	return {
 		type: actions.DELETE_DATA,
 		objectName,
 		id,
 		success,
 		fail,
+		query,
 	};
 }
 
@@ -121,11 +127,12 @@ export function deleteData(objectName, id, success, fail) {
  * 
  * @param {*} param - that contains "objectName" and optional "listName" 
  */
-export function listData({ objectName, listName }) {
+export function listData({ objectName, listName, query }) {
 	return {
 		type: actions.LIST_DATA,
 		objectName,
 		listName,
+		query,
 	};
 }
 
@@ -147,7 +154,7 @@ export function clearData() {
  * @param {Function} success 
  * @param {Function} fail 
  */
-export function rpc( objectName, rpcName, data, success, fail)  {
+export function rpc( objectName, rpcName, data, success, fail, query)  {
 	return {
 		type: actions.RPC,
 		objectName,
@@ -155,6 +162,7 @@ export function rpc( objectName, rpcName, data, success, fail)  {
 		data,
 		success,
 		fail,
+		query,
 	};
 }
 

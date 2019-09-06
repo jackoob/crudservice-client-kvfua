@@ -51,6 +51,28 @@ export function getCookie(cname) {
 	return null;
 }
 
+function addQuery(url, query) {
+	if (!query) {
+		return url;
+	}
+	let resultQuery = '';
+	if (typeof query === "string") {
+		resultQuery = query;
+	} else {
+		resultQuery = Object.keys(query)
+			.map((key) => {
+				if (typeof (query[key]) !== 'undefined') {
+					return (`${encodeURIComponent(key)}=${encodeURIComponent(query[key])}`);
+				}
+			})
+			.join('&');
+	}
+	if (!resultQuery.startsWith("?")) {
+		resultQuery = "?" + resultQuery;
+	}
+	return url + resultQuery;
+}
+
 /**
  * Return default header for fetch request.
  * @param {*} cookieToken 
@@ -151,12 +173,13 @@ const getServer = (defaultServerUrl, crudObjects, objectName, servers = {}) => {
 
 
 export function* getObject({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, args) {
-	const { objectName, id } = args;
+	const { objectName, id, query } = args;
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
 		const serverUrl = getServer(url, crudObjects, apiObject, servers);
 
-		const api = urlResolve.resolve(serverUrl, `${apiObject}/${getObjectUrlId(id, crudObjects, objectName)}`);
+		let api = urlResolve.resolve(serverUrl, `${apiObject}/${getObjectUrlId(id, crudObjects, objectName)}`);
+		api = addQuery(api, query);
 		let fetchData = {
 			method: 'GET',
 			headers: getHeaders(cookieToken),
@@ -165,7 +188,7 @@ export function* getObject({ url, cookieToken, objectsMap, crudObjects, servers,
 		if (customizeFetchRequest) {
 			fetchData = customizeFetchRequest(fetchData, actions.GET_DATA);
 		}
-		const fetchResponse = yield call(fetch, api, fetchData );
+		const fetchResponse = yield call(fetch, api, fetchData);
 		const response = yield call([fetchResponse, fetchResponse.json]);
 
 		if (fetchResponse.ok) {
@@ -204,13 +227,13 @@ export function* getObject({ url, cookieToken, objectsMap, crudObjects, servers,
 }
 
 export function* getSingleton({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, args) {
-	const { objectName, params } = args;
+	const { objectName, params, query } = args;
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
 		const serverUrl = getServer(url, crudObjects, apiObject, servers);
 		// const api = `${serverUrl}/${apiObject}/singleton`;
-		const api = urlResolve.resolve(serverUrl, `${apiObject}/singleton`);
-
+		let api = urlResolve.resolve(serverUrl, `${apiObject}/singleton`);
+		api = addQuery(api, query);
 		let fetchData = {
 			method: 'POST',
 			headers: getHeaders(cookieToken),
@@ -256,13 +279,13 @@ export function* getSingleton({ url, cookieToken, objectsMap, crudObjects, serve
 		});
 	}
 }
-export function* listData({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, { objectName, listName }) {
+export function* listData({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, { objectName, listName, query }) {
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
 		const serverUrl = getServer(url, crudObjects, apiObject, servers);
-		const api = urlResolve.resolve(serverUrl, `${apiObject}/all`);
-
-		let fetchData =  {
+		let api = urlResolve.resolve(serverUrl, `${apiObject}/all`);
+		api = addQuery(api, query);
+		let fetchData = {
 			method: 'GET',
 			headers: getHeaders(cookieToken),
 			credentials: 'include',
@@ -315,12 +338,12 @@ const getErrorResponse = (fetchResponse, responseData) => {
 };
 
 export function* createObject({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, args) {
-	const { objectName, data } = args;
+	const { objectName, data, query } = args;
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
 		const serverUrl = getServer(url, crudObjects, apiObject, servers);
-		const api = urlResolve.resolve(serverUrl, `${apiObject}/create`);
-
+		let api = urlResolve.resolve(serverUrl, `${apiObject}/create`);
+		api = addQuery(api, query);
 		let fetchData = {
 			method: 'POST',
 			headers: getHeaders(cookieToken),
@@ -373,14 +396,14 @@ export function* createObject({ url, cookieToken, objectsMap, crudObjects, serve
 }
 
 export function* updateObject({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, args) {
-	const { objectName, listName, data } = args;
+	const { objectName, listName, data, query } = args;
 
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
 		const key = getObjectIdentifier(data, crudObjects, objectName);
 		const serverUrl = getServer(url, crudObjects, apiObject, servers);
-		const api = urlResolve.resolve(serverUrl, `${apiObject}/${key}`);
-
+		let api = urlResolve.resolve(serverUrl, `${apiObject}/${key}`);
+		api = addQuery(api, query);
 
 		let sendData = Object.assign({}, data);
 		delete sendData.crudoState;
@@ -399,7 +422,7 @@ export function* updateObject({ url, cookieToken, objectsMap, crudObjects, serve
 			fetchData = customizeFetchRequest(fetchData, actions.UPDATE_DATA);
 		}
 
-	
+
 		const fetchResponse = yield call(fetch, api, fetchData);
 
 		// ------------------------------------------------------------------------
@@ -446,12 +469,13 @@ export function* updateObject({ url, cookieToken, objectsMap, crudObjects, serve
 
 
 export function* deleteObject({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, args) {
-	const { objectName, id } = args;
+	const { objectName, id, query } = args;
 
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
 		const serverUrl = getServer(url, crudObjects, apiObject, servers);
-		const api = urlResolve.resolve(serverUrl, `${apiObject}/${id}`);
+		let api = urlResolve.resolve(serverUrl, `${apiObject}/${id}`);
+		api = addQuery(api, query);
 
 		let fetchData = {
 			method: 'DELETE',
@@ -461,7 +485,7 @@ export function* deleteObject({ url, cookieToken, objectsMap, crudObjects, serve
 		if (customizeFetchRequest) {
 			fetchData = customizeFetchRequest(fetchData, actions.DELETE_DATA);
 		}
-		
+
 		const fetchResponse = yield call(fetch, api, fetchData);
 
 		// ------------------------------------------------------------------------
@@ -499,15 +523,16 @@ export function* deleteObject({ url, cookieToken, objectsMap, crudObjects, serve
 
 
 export function* callRPC({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, args) {
-	const { objectName, rpcName, data, success, fail } = args;
+	const { objectName, rpcName, data, success, fail, query } = args;
 
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
 		const serverUrl = getServer(url, crudObjects, apiObject, servers);
-		const api = urlResolve.resolve(serverUrl, `${apiObject}/${rpcName}`);
-		const headers = getHeaders(cookieToken);
+		let api = urlResolve.resolve(serverUrl, `${apiObject}/${rpcName}`);
+		api = addQuery(api, query);
 		// console.log(headers);
-
+		
+		const headers = getHeaders(cookieToken);
 		let fetchData = {
 			method: 'POST',
 			headers: headers,
