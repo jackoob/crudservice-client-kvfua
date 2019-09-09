@@ -515,9 +515,11 @@ const actionHandlers = {
 	 * @return {*}
 	 */
 	[actions.LOAD_MODEL_DEFINITION_SUCCESS] (state, action) {
-		return state
+		let newState = state
 			.setIn([ 'models', action.modelName, 'definition', 'crudoState' ], CrudoState.OK)
-			.setIn([ 'models', action.modelName, 'definition', 'data'], action.model);
+			.setIn([ 'models', action.modelName, 'definition', 'data'], action.model.schema);
+		if (action.model.meta && action.model.meta.translatable) newState = newState.setIn([ 'models', action.modelName, 'translatable' ], true);
+		return newState;
 		/*return state.setIn([ 'models', action.modelName ], action.model).updateIn(['models',action.modelName], s=> {
 			s.crudoState
 		}'],CrudoState.OK)*/
