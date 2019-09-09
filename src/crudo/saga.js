@@ -1,11 +1,12 @@
-import { call, put, takeEvery } from 'redux-saga/effects';
+import { call, put, takeEvery, select } from 'redux-saga/effects';
 // TODO:remove all delays
 import urlResolve from "url";
 import { delay } from 'redux-saga';
 import { actions } from './constants';
+import { apiRequest } from "../api";
 
 /**
- * Prepare initial configurations of objects for saga.  Sample objects is mixed array, wher item can be string 
+ * Prepare initial configurations of objects for saga.  Sample objects is mixed array, wher item can be string
  * or object with "key", eg:
  * [
 		'shop', - object name
@@ -19,9 +20,9 @@ import { actions } from './constants';
 		    server: 'pay',  - server is different from default, it's alias is "pay"
 		}
 	],
- * 
- * 
- * @param {*} objects 
+ *
+ *
+ * @param {*} objects
  */
 export function prepareObjectsConfig(objects) {
 	let result = {};
@@ -75,7 +76,7 @@ function addQuery(url, query) {
 
 /**
  * Return default header for fetch request.
- * @param {*} cookieToken 
+ * @param {*} cookieToken
  */
 const getHeaders = (cookieToken) => {
 	const headers = {
@@ -88,8 +89,8 @@ const getHeaders = (cookieToken) => {
 /**
  * Object can have different name on server. This allows to name one object on server by many different names in client.
  * This function will get the correct object's server name by the "objectName"
- * @param {*} objectsMap 
- * @param {*} objectName 
+ * @param {*} objectsMap
+ * @param {*} objectName
  */
 const getApiObject = (objectsMap, objectName) => {
 	let apiObject = objectName;
@@ -99,14 +100,22 @@ const getApiObject = (objectsMap, objectName) => {
 	return apiObject;
 };
 
+/**
+ * Get an unique identifier of the passed object based on its model configuration
+ * @param {Object} data Object/document
+ * @param {Object.<string, Object>} crudObjects
+ * @param {string} objectName Model name
+ * @throws {string} When the passed object is undefined or missing the identifier
+ * @return {string} Unique document (object) identifier
+ */
 const getObjectIdentifier = (data, crudObjects, objectName) => {
 	if (!data) {
 		throw "Object " + objectName + " is undefined.";
 	}
 	let id;
 	if (!crudObjects[objectName] || !crudObjects[objectName].storeBy) {
-		id = data.id;
-		if (!id) id = data._id;
+		/*id = data.id;
+		if (!id)*/ id = data._id;
 
 	} else {
 		let remoteStoreBy = crudObjects[objectName].storeBy;
@@ -121,6 +130,16 @@ const getObjectIdentifier = (data, crudObjects, objectName) => {
 
 };
 
+/**
+ * ???
+ * @todo Find out what this fn does
+ * @deprecated
+ * @param {string|string[]} id
+ * @param {Object.<string, Object>} crudObjects
+ * @param {string} objectName Model name
+ * @throws
+ * @return {*}
+ */
 const getObjectUrlId = (id, crudObjects, objectName) => {
 	if (!Array.isArray(id))
 		return id;
@@ -143,7 +162,7 @@ const getObjectUrlId = (id, crudObjects, objectName) => {
 
 /**
  * Function will find and return server, where the object "objectName" is stored.
- * 
+ *
  * @param {*} defaultServerUrl the default server url used if "objectName" has not defined specific server
  * @param {*} crudObjects objects definition
  * @param {*} objectName object name
@@ -172,9 +191,10 @@ const getServer = (defaultServerUrl, crudObjects, objectName, servers = {}) => {
 };
 
 
-export function* getObject({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, args) {
+export function* getObject({ url, cookieToken, objectsMap, /*crudObjects,*/ servers, customizeFetchRequest }, args) {
 	const { objectName, id, query } = args;
 	try {
+		const crudObjects = yield select(state => state.crudo.get('models'));
 		const apiObject = getApiObject(objectsMap, objectName);
 		const serverUrl = getServer(url, crudObjects, apiObject, servers);
 
@@ -211,15 +231,21 @@ export function* getObject({ url, cookieToken, objectsMap, crudObjects, servers,
 			});
 		}
 	} catch (exception) {
-		const error = {
+		/*const error = {
 			status: 404,
 			statusText: '',
 			error: 'Problem with contacting the server.',
-		};
+		};*/
+		console.error((exception))
+		// if e.msg == 'b undefined' -> didn't yet get list of models
 		yield put({
 			type: actions.GET_DATA_FAIL,
 			objectName,
-			error,
+			//error,
+			/*error: Object.entries(exception).reduce((accu, [k,v]) => {
+				accu[k] = v;
+				return accu;
+			}, {}),*/
 			id,
 			args,
 		});
@@ -396,11 +422,11 @@ export function* createObject({ url, cookieToken, objectsMap, crudObjects, serve
 }
 
 export function* updateObject({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, args) {
-	const { objectName, listName, data, query } = args;
+	const { objectName, listName, data, query, documentIdentifier } = args;
 
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
-		const key = getObjectIdentifier(data, crudObjects, objectName);
+		const key = documentIdentifier || getObjectIdentifier(data, crudObjects, objectName);
 		const serverUrl = getServer(url, crudObjects, apiObject, servers);
 		let api = urlResolve.resolve(serverUrl, `${apiObject}/${key}`);
 		api = addQuery(api, query);
@@ -408,10 +434,8 @@ export function* updateObject({ url, cookieToken, objectsMap, crudObjects, serve
 		let sendData = Object.assign({}, data);
 		delete sendData.crudoState;
 		delete sendData.version;
-		if (sendData.id && !sendData._id) sendData._id = sendData.id;
-		delete sendData.id;
-
-
+		/*if (sendData.id && !sendData._id) sendData._id = sendData.id;
+		delete sendData.id;*/
 		let fetchData = {
 			method: 'PUT',
 			headers: getHeaders(cookieToken),
@@ -469,13 +493,16 @@ export function* updateObject({ url, cookieToken, objectsMap, crudObjects, serve
 
 
 export function* deleteObject({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, args) {
-	const { objectName, id, query } = args;
+	const { objectName, /*id,*/ query, documentIdentifier } = args;
 
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
 		const serverUrl = getServer(url, crudObjects, apiObject, servers);
-		let api = urlResolve.resolve(serverUrl, `${apiObject}/${id}`);
+		const key = documentIdentifier || args.id; // FIXME: fallback for legacy purposes - delete
+		let api = urlResolve.resolve(serverUrl, `${apiObject}/${key}`);
 		api = addQuery(api, query);
+
+		console.log(api);
 
 		let fetchData = {
 			method: 'DELETE',
@@ -497,7 +524,7 @@ export function* deleteObject({ url, cookieToken, objectsMap, crudObjects, serve
 			yield put({
 				type: actions.DELETE_DATA_SUCCESS,
 				objectName,
-				id,
+				id: key, // FIXME: legacy
 				args,
 			});
 
@@ -531,7 +558,7 @@ export function* callRPC({ url, cookieToken, objectsMap, crudObjects, servers, c
 		let api = urlResolve.resolve(serverUrl, `${apiObject}/${rpcName}`);
 		api = addQuery(api, query);
 		// console.log(headers);
-		
+
 		const headers = getHeaders(cookieToken);
 		let fetchData = {
 			method: 'POST',
@@ -577,7 +604,140 @@ function* checkAndProcessCallbacks(response) {
 	}
 }
 
-// export sagas
+/**
+ * Enumerate models available on the server side
+ * @param url
+ */
+function* listModels (...args) {
+	try {
+		//console.log(args[0].crudObjects)
+		const url = args[0].url
+		/*const response = yield call(
+			fetch,
+			urlResolve.resolve(url, `/sys/models`),
+			{
+				method: 'GET',
+				headers: getHeaders(cookieToken), //todo redo
+				credentials: 'include',
+			}
+		);
+		const parsedResponse = yield call([ response, response.json ]);
+		if (parsedResponse && parsedResponse.status === 'success') {
+			yield put({
+				type: actions.LIST_MODELS_SUCCESS,
+				data: parsedResponse.data,
+			});
+		} else throw new Error(response); // todo make it better*/
+		const resp = yield call(apiRequest, {
+			url: urlResolve.resolve(url, '/sys/models'),
+			method: 'GET',
+			cookie: true,
+			json: true,
+		});
+		yield put({
+			type: actions.LIST_MODELS_SUCCESS,
+			data: resp.body.data,
+		});
+	} catch (e) {
+		yield put({
+			type: actions.LIST_MODELS_FAILURE,
+			hmm: "ys",
+			error:e.message,
+		});
+	}
+}
+
+/**
+ * Perform an authentication attempt using provided user credentials. If successful, a session cookie will be created.
+ * @param {string} url
+ * @param {string} username
+ * @param {string} password
+ */
+function* authenticate({ url }, { username, password }) {
+	try {
+		/*const resp = yield call(fetch, urlResolve.resolve(url, `/user/login`), {
+			method: 'POST',
+			/!*headers: {
+				'content-type':'application/json',
+			},*!/
+			headers: getHeaders({}),
+			credentials: 'include', // this allows cookie creation
+			body: JSON.stringify({
+				why: "me",
+				username,
+				password,
+			}),
+		});*/
+		const resp = yield call(apiRequest, {
+			url: urlResolve.resolve(url, '/user/login'),
+			method: 'POST',
+			json: true,
+			cookie: true,
+			body: {
+				username,
+				password,
+			},
+		});
+		yield put({
+			type: actions.AUTHENTICATE_SUCCESS,
+			userObject: resp.body.user,
+		});
+	} catch (e) {
+		yield put({
+			type: actions.AUTHENTICATE_FAILURE,
+			error: e.message,
+		});
+	}
+}
+
+/**
+ * End the current session.
+ * We don't care about the response but if an error occurs we should at least register it.
+ * @param {string} url
+ */
+function* logout ({ url }) {
+	try {
+		yield call(apiRequest, {
+			url: urlResolve.resolve(url, '/user/logout'),
+			method: 'GET',
+			json: true,
+			cookie: true,
+		});
+	} catch (e) {
+		yield put({
+			type: actions.LOGOUT_FAILURE,
+			error: e,
+		});
+	}
+}
+
+/**
+ * Load a model's definition through the system route
+ * @param {string} url
+ * @param {string} modelName
+ */
+function* loadModelDefinition ({ url }, { modelName }) {
+	try {
+		const resp = yield call(apiRequest, {
+			url: urlResolve.resolve(url, `/sys/models/${modelName}`),
+			method: 'GET',
+			cookie: true,
+			json: true,
+		});
+		yield put({
+			type: actions.LOAD_MODEL_DEFINITION_SUCCESS,
+			modelName,
+			model: resp.body.data,
+		});
+	} catch (e) {
+		yield put({
+			type: actions.LOAD_MODEL_DEFINITION_FAILURE,
+			error: e.message,
+		});
+	}
+}
+
+// export effects ("sagas")
 /**
  * Saga params contains:
  *  url - the server url
@@ -596,14 +756,20 @@ function* checkAndProcessCallbacks(response) {
  * 			body: JSON.stringify(data),
  * 			credentials: 'include' }
  *	  - action:  actions.GET_DATA|GET_SINGLETON|LIST_DATA|CREATE_DATA|UPDATE_DATA|DELETE_DATA|RPC
- * 
- * 
- * @param {*} rawSagaParams 
+ *
+ *
+ * @param {*} rawSagaParams
  */
 export const getCudoSaga = (rawSagaParams) => {
 	const sagaParams = Object.assign({}, rawSagaParams);
 	sagaParams.crudObjects = prepareObjectsConfig(rawSagaParams.crudObjects);
+	//console.log(sagaParams.crudObjects)
 	return [
+		/*takeEvery("CRUDO_GET_DATA", function* (...args) {
+			console.log(...args);
+			yield console.log("ja jestem saga");
+		}),//, sagaParams)*/
+		//takeEvery(actions.GET_DATA, getObject, sagaParams),
 		takeEvery(actions.GET_DATA, getObject, sagaParams),
 		takeEvery(actions.GET_SINGLETON, getSingleton, sagaParams),
 		takeEvery(actions.LIST_DATA, listData, sagaParams),
@@ -611,5 +777,12 @@ export const getCudoSaga = (rawSagaParams) => {
 		takeEvery(actions.UPDATE_DATA, updateObject, sagaParams),
 		takeEvery(actions.DELETE_DATA, deleteObject, sagaParams),
 		takeEvery(actions.RPC, callRPC, sagaParams),
-	]
+
+		takeEvery(actions.AUTHENTICATE, authenticate, sagaParams),
+		takeEvery(actions.LOGOUT, logout, sagaParams),
+		takeEvery(actions.LIST_MODELS, listModels, sagaParams),
+		takeEvery(actions.LOAD_MODEL_DEFINITION, loadModelDefinition, sagaParams),
+
+		//takeEvery(actions.GET_DOCUMENTS, getDocuments, sagaParams),
+	];
 };

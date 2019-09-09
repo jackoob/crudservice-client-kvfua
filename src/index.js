@@ -1,13 +1,14 @@
 
 export {
 	CrudoState,
+	AuthState,
 	actions,
 	CrudoShape,
 	CrudoData,
 	CrudoObject,
 } from './crudo/constants';
 export { default as crudoReducer } from './crudo/reducer';
-export { getCudoSaga } from './crudo/saga';
+export { getCudoSaga, listData } from './crudo/saga';
 export { default as crudo } from './crudo/actions';
 export {
 	getCrudoObject,

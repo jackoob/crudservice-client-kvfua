@@ -75,13 +75,13 @@ export const getCrudoObject = (crudoReducer, objectName, objectId) => {
 	let id = getObjecId(objectId);
 	if (!crudoSelectors[objectName]) crudoSelectors[objectName]={};
 	if (!crudoSelectors[objectName][id]){
-		crudoSelectors[objectName][id]=createSelector( 
+		crudoSelectors[objectName][id]=createSelector(
 			[crudoStateSelectorByName(objectName), crudoDataSelectorByName(objectName)],
 			(crudoState, data) => {
 				if (!crudoState && !data) return { crudoState: CrudoState.INITIAL };
 				if (!data) return { crudoState };
 				// console.log("selector - "+objectName);
-				return Object.assign({}, {crudoState}, data.toJS() ); 
+				return Object.assign({}, {crudoState}, data.toJS() );
 			}
 		)
 	}
@@ -174,8 +174,8 @@ const getCrudArraSelectors = {};
 
 /**
  * TODO: optimalize with selectors
- * @param {*} crudoReducer 
- * @param {*} objectName 
+ * @param {*} crudoReducer
+ * @param {*} objectName
  */
 export const getCrudArray = (crudoReducer, objectName) => {
 	const crudoState = crudoReducer.getIn([objectName, 'crudoState']);
@@ -196,11 +196,11 @@ const crudOrderedArraySelectors = {};
 const crudOrderedArrayComparators = {};
 
 /**
- * Create selector for getting ordered data. There can be used custom comparator. 
- * 
- * @param {*} state 
- * @param {*} objectName 
- * @param {*} customSort 
+ * Create selector for getting ordered data. There can be used custom comparator.
+ *
+ * @param {*} state
+ * @param {*} objectName
+ * @param {*} customSort
  */
 export var getCrudArrayOrdered = function (state, objectName, customComparator = null) {
 	let theComparator = customComparator ? customComparator : orderComparator;
