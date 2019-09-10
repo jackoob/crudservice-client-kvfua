@@ -19,8 +19,8 @@ export const getCrudoObjectSelector = (objectName, propsDataKey) => {
 	}
 }
 
-export var getObjectState = (state, objectName) => { state.crudo.getIn([objectName, 'crudoState']) };
-export var objectNeedsToLoad = (state, objectName) => { state.crudo.getIn([objectName, 'crudoState']) === CrudoState.INITIAL };
+export var getObjectState = (state, objectName) => { return state.crudo.getIn([objectName, 'crudoState']) };
+export var objectNeedsToLoad = (state, objectName) => { return state.crudo.getIn([objectName, 'crudoState']) === CrudoState.INITIAL };
 
 
 //-------------------------------------------------
@@ -71,8 +71,9 @@ const getObjecId= (id) => {
 }
 const crudoSelectors = {};
 
-export const getCrudoObject = (crudoReducer, objectName, objectId) => {
+export const getCrudoObject = (crudoStore, objectName, objectId) => {
 	let id = getObjecId(objectId);
+	let crudoSource = crudoStore.crudo ? crudoStore.crudo : crudoStore;
 	if (!crudoSelectors[objectName]) crudoSelectors[objectName]={};
 	if (!crudoSelectors[objectName][id]){
 		crudoSelectors[objectName][id]=createSelector( 
@@ -85,7 +86,7 @@ export const getCrudoObject = (crudoReducer, objectName, objectId) => {
 			}
 		)
 	}
-	return crudoSelectors[objectName][id](crudoReducer, objectId);
+	return crudoSelectors[objectName][id](crudoSource, objectId);
 }
 
 export const getCrudoObjectOld = (crudoReducer, objectName, objectId) => {
@@ -178,9 +179,10 @@ const getCrudArraSelectors = {};
  * @param {*} objectName 
  */
 export const getCrudArray = (crudoReducer, objectName) => {
-	const crudoState = crudoReducer.getIn([objectName, 'crudoState']);
+	let crudo = crudoReducer.crudo ? crudoReducer.crudo : crudoReducer;
+	const crudoState = crudo.getIn([objectName, 'crudoState']);
 	if (crudoState !== CrudoState.OK) return [];
-	const immuData = crudoReducer.getIn([objectName, 'data']);
+	const immuData = crudo.getIn([objectName, 'data']);
 	if (!immuData) return [];
 	var result = [];
 	const data = immuData.toJS();

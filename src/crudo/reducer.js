@@ -75,7 +75,7 @@ const actionHandlers = {
 		}else{
 			gettingData = state.getIn([objectName, 'data', id])
 		}
-		gettingData= gettingData.setIn('crudoState', CrudoState.LOADING);
+		gettingData= gettingData.set('crudoState', CrudoState.LOADING);
 		return state.setIn([objectName, 'data', id], gettingData);
 	},
 
