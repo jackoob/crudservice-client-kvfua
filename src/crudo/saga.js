@@ -737,6 +737,30 @@ function* loadModelDefinition ({ url }, { modelName }) {
 	}
 }
 
+/**
+ * Get server-provided config
+ * @param {Object} sagaParams
+ * @param {Object} action
+ */
+function* getServerConfig (sagaParams, action) {
+	try {
+		const resp = yield call(apiRequest, {
+			url: urlResolve.resolve(sagaParams.url, '/sys/config'),
+			method: 'GET',
+			cookie: true,
+			json: true,
+		});
+		yield put({
+			type: actions.GET_SERVER_CONFIG_SUCCESS,
+			...resp.body.data,
+		});
+	} catch (e) {
+		yield put({
+			type: actions.GET_SERVER_CONFIG_FAILURE,
+			error: JSON.parse(JSON.stringify(e, Object.getOwnPropertyNames(e))),
+		});
+	}
+}
 // export effects ("sagas")
 /**
  * Saga params contains:
@@ -782,6 +806,7 @@ export const getCudoSaga = (rawSagaParams) => {
 		takeEvery(actions.LOGOUT, logout, sagaParams),
 		takeEvery(actions.LIST_MODELS, listModels, sagaParams),
 		takeEvery(actions.LOAD_MODEL_DEFINITION, loadModelDefinition, sagaParams),
+		takeEvery(actions.GET_SERVER_CONFIG, getServerConfig, sagaParams),
 
 		//takeEvery(actions.GET_DOCUMENTS, getDocuments, sagaParams),
 	];
