@@ -499,7 +499,12 @@ const actionHandlers = {
 	[actions.LOAD_MODEL_DEFINITION] (state, action) {
 		/*const p = prepareInitialState([action.modelName]).get(action.modelName) // OPTIMIZE: I'm ugly
 		return state.setIn([ 'models', action.modelName ], p)*/
-		return state.setIn([ 'models', action.modelName, 'definition', 'crudoState' ], CrudoState.LOADING);
+		let newState = state;
+		if (!state.hasIn(['models', action.modelName])) {
+			let initialObject = fromJS(getRawObjectState())
+			newState = newState.setIn(['models', action.modelName], initialObject);
+		}
+		return newState.setIn([ 'models', action.modelName, 'definition', 'crudoState' ], CrudoState.LOADING);
 	},
 
 	/**
@@ -544,7 +549,7 @@ function crudoReducer(state = initialState, action) {
  */
 
 export default function getCrudoReducer(objectsArray) {
-	let initialState = prepareInitialState(/*objectsArray*/ []).set('auth', initialAuthState);
+	let initialState = prepareInitialState(objectsArray).set('auth', initialAuthState);
 		return (state = initialState, action) => {
 			const { type } = action;
 			if (type in actionHandlers) {
