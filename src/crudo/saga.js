@@ -1,8 +1,7 @@
-import { call, put, takeEvery, select } from 'redux-saga/effects';
+import { call, put, takeEvery, select, race, delay, take } from 'redux-saga/effects';
 // TODO:remove all delays
 import urlResolve from "url";
-import { delay } from 'redux-saga';
-import { actions } from './constants';
+import { actions, CrudoState } from "./constants";
 import { apiRequest } from "../api";
 
 /**
@@ -717,6 +716,24 @@ function* logout ({ url }) {
  * @param {string} modelName
  */
 function* loadModelDefinition ({ url }, { modelName }) {
+	// first make sure that this model exists
+	// FIXME: this is probably not the right place to do this check
+	const currentState = yield select(state => state.crudo.getIn([ 'models', modelName, 'crudoState' ]));
+	if (typeof currentState === 'undefined') {
+		// model isn't there : list of models probably not yet loadeded, do that now
+		yield put({ type: actions.LIST_MODELS, });
+		const { success, failure } = yield race({
+			success: take(actions.LIST_MODELS_SUCCESS),
+			failure: take(actions.LIST_MODELS_FAILURE),
+		});
+		if (failure) {
+			// there's no reason to continue this saga, something has already gone wrong and is hopefully being handled
+			return;
+		} else if (success) {
+			// give the reducer some time to process the response and then continue this saga as we're okay now
+			yield delay(10);
+		}
+	}
 	try {
 		const resp = yield call(apiRequest, {
 			url: urlResolve.resolve(url, `/sys/models/${modelName}`),

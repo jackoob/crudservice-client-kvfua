@@ -204,7 +204,13 @@ const actionHandlers = {
 			});
 			newState = newState.setIn([listName, 'list'], fromJS(updatedIds)); // FIXME: don't put listName onto the state root
 		} else {
-			const storeBy = state.getIn([ 'models', objectName, 'storeBy' ]);
+			const storeBy = state.getIn([ 'models', objectName, 'storeBy' ], '_id');
+			/**
+			 * FIXME: _id in the line above only suppresses a symptom of a larger issue: store.crudo.models.$x.storeBy
+			 * might not yet be defined at this point, which it definitely should, or at least get defined at the
+			 * time we try to access it here.
+			 * Hopefully fixed in loadModelDefinition saga, leaving this here just to be sure.
+			 */
 			data.forEach((item) => {
 				if (!item) return;
 				let inputItem = item;
@@ -593,7 +599,7 @@ function crudoReducer(state = initialState, action) {
  */
 
 export default function getCrudoReducer(objectsArray) {
-	let initialState = prepareInitialState(/*objectsArray*/ []).set('auth', initialAuthState);
+	let initialState = prepareInitialState(objectsArray || []).set('auth', initialAuthState);
 		return (state = initialState, action) => {
 			const { type } = action;
 			if (type in actionHandlers) {
