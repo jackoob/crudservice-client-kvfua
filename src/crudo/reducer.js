@@ -503,7 +503,12 @@ const actionHandlers = {
 	[actions.LOAD_MODEL_DEFINITION] (state, action) {
 		/*const p = prepareInitialState([action.modelName]).get(action.modelName) // OPTIMIZE: I'm ugly
 		return state.setIn([ 'models', action.modelName ], p)*/
-		return state.setIn([ 'models', action.modelName, 'definition', 'crudoState' ], CrudoState.LOADING);
+		let newState = state;
+		if (!state.hasIn(['models', action.modelName])) {
+			let initialObject = fromJS(getRawObjectState())
+			newState = newState.setIn(['models', action.modelName], initialObject);
+		}
+		return newState.setIn([ 'models', action.modelName, 'definition', 'crudoState' ], CrudoState.LOADING);
 	},
 
 	/**
