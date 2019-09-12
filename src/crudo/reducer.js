@@ -400,8 +400,6 @@ const actionHandlers = {
 	},
 
 
-	// CRUDO v2
-
 
 	/**
 	 * Mark authentication as in progress
@@ -528,10 +526,61 @@ const actionHandlers = {
 		/*return state.setIn([ 'models', action.modelName ], action.model).updateIn(['models',action.modelName], s=> {
 			s.crudoState
 		}'],CrudoState.OK)*/
-	}
+	},
 	// todo fail
 
-	// todo new get actions
+
+	/**
+	 * @typedef {CrudoAction} CrudoAction_GetServerConfig
+	 * @property {actions.GET_SERVER_CONFIG} type
+	 */
+	/**
+	 * Prepare loading state for server-provided config.
+	 * @param state
+	 * @param {CrudoAction_GetServerConfig} action
+	 * @returns {*}
+	 */
+	[actions.GET_SERVER_CONFIG] (state, action) {
+		return state
+			.set('_crudoConfig', initObjectSate())
+			.setIn([ '_crudoConfig', 'crudoState' ], CrudoState.LOADING);
+	},
+
+	/**
+	 * @typedef {CrudoAction} CrudoAction_GetServerConfigSuccess
+	 * @property {actions.GET_SERVER_CONFIG_SUCCESS} type
+	 * @property {string[]} [languages]
+	 */
+	/**
+	 * Store server-provided config
+	 * @param state
+	 * @param {CrudoAction_GetServerConfigSuccess} action
+	 * @returns {*}
+	 */
+	[actions.GET_SERVER_CONFIG_SUCCESS] (state, action) {
+		return state
+			.setIn([ '_crudoConfig', 'data' ], fromJS({
+				...action,
+				type: undefined,
+			}))
+			.setIn([ '_crudoConfig', 'crudoState' ], CrudoState.OK);
+	},
+
+	/**
+	 * @typedef {CrudoAction} CrudoAction_GetServerConfigFailure
+	 * @property {actions.GET_SERVER_CONFIG_FAILURE} type
+	 * @todo add other props
+	 */
+	/**
+	 * @param state
+	 * @param {CrudoAction_GetServerConfigFailure} type
+	 * @returns {*}
+	 */
+	[actions.GET_SERVER_CONFIG_FAILURE] (state, action) {
+		// TODO
+		return state;
+	},
+
 
 };
 
