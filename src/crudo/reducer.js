@@ -86,21 +86,21 @@ const actionHandlers = {
 	//----------------------------------------------------------------------------
 	[actions.GET_DATA](state, { objectName, id }) {
 		let gettingData;
-		if (!state.hasIn([ 'models', objectName, 'data', id ])) {
-			gettingData = initObjectSate(state.getIn([ 'models', objectName ]));
+		if (!state.hasIn([ objectName, 'data', id ])) {
+			gettingData = initObjectSate(state.getIn([ objectName ]));
 		}else{
-			gettingData = state.getIn([ 'models', objectName, 'data', id ])
+			gettingData = state.getIn([ objectName, 'data', id ])
 		}
 		gettingData= gettingData.set('crudoState', CrudoState.LOADING);
-		return state.setIn([ 'models', objectName, 'data', id ], gettingData);
+		return state.setIn([ objectName, 'data', id ], gettingData);
 	},
 
 	[actions.GET_DATA_SUCCESS](state, { objectName, id, data, args }) {
 
 		const imData = fromJS(Object.assign({},data,{crudoState: CrudoState.OK}));
-		let lastVersion = state.getIn([ 'models', objectName, 'data', id, 'version' ]);
+		let lastVersion = state.getIn([ objectName, 'data', id, 'version' ]);
 
-		let itemData = initObjectSate(state.getIn([ 'models', objectName ]));
+		let itemData = initObjectSate(state.getIn([ objectName ]));
 		itemData = itemData.merge(imData);
 		itemData = itemData.set('version',  lastVersion ? lastVersion+1:1);
 		if (args && args.success) {
@@ -108,13 +108,13 @@ const actionHandlers = {
 				args.success(data);
 			}, 1);
 		}
-		return state.setIn([ 'models', objectName, 'data', id ], itemData);
+		return state.setIn([ objectName, 'data', id ], itemData);
 	},
 
 	[actions.GET_DATA_FAIL](state, { objectName, id, error, args }) {
-		let itemData = state.getIn([ 'models', objectName, 'data', id ]);
+		let itemData = state.getIn([ objectName, 'data', id ]);
 		if (!itemData) {
-			itemData = initObjectSate(state.getIn([ 'models', objectName ]));
+			itemData = initObjectSate(state.getIn([ objectName ]));
 		}
 		itemData = itemData.set('crudoState', CrudoState.FAIL).set('error', error);
 		if (args && args.fail) {
@@ -122,7 +122,7 @@ const actionHandlers = {
 				args.fail(itemData);
 			}, 1);
 		}
-		return state.setIn([ 'models', objectName, 'data', id ], itemData);
+		return state.setIn([ objectName, 'data', id ], itemData);
 	},
 
 	//----------------------------------------------------------------------------
@@ -132,7 +132,7 @@ const actionHandlers = {
 		if (!objectName || !ids || ids.length === 0) return state;
 		let result = state;
 		ids.forEach(id => {
-			result = result.setIn([ 'models', objectName, 'data', id, 'crudoState' ], CrudoState.INITIAL);
+			result = result.setIn([ objectName, 'data', id, 'crudoState' ], CrudoState.INITIAL);
 		})
 		return result;
 	},
@@ -140,42 +140,42 @@ const actionHandlers = {
 	// singleton
 	//----------------------------------------------------------------------------
 	[actions.GET_SINGLETON](state, { objectName }) {
-		const gettingData = initObjectSate(state.getIn([ 'models', objectName ]));
+		const gettingData = initObjectSate(state.getIn([ objectName ]));
 		gettingData.setIn('crudoState', CrudoState.LOADING);
-		return state.setIn([ 'models', objectName,'data' ], gettingData);
+		return state.setIn([ objectName,'data' ], gettingData);
 	},
 
 	[actions.GET_SINGLETON_SUCCESS](state, { objectName, data }) {
 		const imData = fromJS(data);
-		let itemData = state.getIn([ 'models', objectName ]);
+		let itemData = state.getIn([ objectName ]);
 		if (!itemData) {
-			itemData = initObjectSate(state.getIn([ 'models', objectName ]));
+			itemData = initObjectSate(state.getIn([ objectName ]));
 		}
 		itemData = itemData.set('crudoState', CrudoState.OK).set('data', imData);
 
-		return state.setIn([ 'models', objectName ], itemData);
+		return state.setIn([ objectName ], itemData);
 	},
 
 	[actions.GET_SINGLETON_FAIL](state, { objectName, error }) {
-		let itemData = state.getIn([ 'models', objectName ]);
+		let itemData = state.getIn([ objectName ]);
 		if (!itemData) {
-			itemData = initObjectSate(state.getIn([ 'models', objectName ]));
+			itemData = initObjectSate(state.getIn([ objectName ]));
 		}
 		itemData = itemData.set('crudoState', CrudoState.FAIL).set('error', error);
-		return state.setIn([ 'models', objectName ], itemData);
+		return state.setIn([ objectName ], itemData);
 	},
 	//----------------------------------------------------------------------------
 	// list
 	//----------------------------------------------------------------------------
 	[actions.LIST_DATA](state, { objectName, listName }) {
-		/*let gettingData = initObjectSate(state.getIn([ 'models', objectName ]));
+		/*let gettingData = initObjectSate(state.getIn([ objectName ]));
 		gettingData = gettingData.set('crudoState', CrudoState.LOADING);*/
-		return state.setIn([ 'models', objectName, 'crudoState' ], CrudoState.LOADING);
+		return state.setIn([ objectName, 'crudoState' ], CrudoState.LOADING);
 		/*if (listName) {
 			// FIXME: repair listName-based feature
 			return state.setIn([listName], gettingData); // FIXME: don't put listName onto the state root
 		}
-		return state.setIn([ 'models', objectName ], gettingData);*/
+		return state.setIn([ objectName ], gettingData);*/
 	},
 
 
@@ -204,9 +204,9 @@ const actionHandlers = {
 			});
 			newState = newState.setIn([listName, 'list'], fromJS(updatedIds)); // FIXME: don't put listName onto the state root
 		} else {
-			const storeBy = state.getIn([ 'models', objectName, 'storeBy' ], '_id');
+			const storeBy = state.getIn([ objectName, 'storeBy' ], '_id');
 			/**
-			 * FIXME: _id in the line above only suppresses a symptom of a larger issue: store.crudo.models.$x.storeBy
+			 * FIXME: _id in the line above only suppresses a symptom of a larger issue: store.crudx.storeBy
 			 * might not yet be defined at this point, which it definitely should, or at least get defined at the
 			 * time we try to access it here.
 			 * Hopefully fixed in loadModelDefinition saga, leaving this here just to be sure.
@@ -221,14 +221,14 @@ const actionHandlers = {
 					itemId = inputItem.id;
 				}*/
 				//if (itemId) {
-					newState = newState.setIn([ 'models', objectName, 'data', itemId ], fromJS({
+					newState = newState.setIn([ objectName, 'data', itemId ], fromJS({
 						crudoState: CrudoState.OK,
 						data: inputItem,
 					}));
 				//}
 			});
 		}
-		return newState.setIn([ 'models', target, 'crudoState' ], CrudoState.OK); // FIXME: this breaks with listName; see other FIXMEs
+		return newState.setIn([ target, 'crudoState' ], CrudoState.OK); // FIXME: this breaks with listName; see other FIXMEs
 	},
 
 	/**
@@ -245,13 +245,13 @@ const actionHandlers = {
 	 */
 	[actions.LIST_DATA_FAIL] (state, action) {
 		const { objectName, listName, error } = action;
-		let itemData = state.getIn([ 'models', objectName ]);
-		if (!itemData) itemData = initObjectSate(state.getIn([ 'models', objectName ])); // FIXME: why pass this argument?
+		let itemData = state.getIn([ objectName ]);
+		if (!itemData) itemData = initObjectSate(state.getIn([ objectName ])); // FIXME: why pass this argument?
 		itemData = itemData.set('crudoState', CrudoState.FAIL).set('error', error);
 		if (listName) {
 			return state.setIn([listName], itemData); // FIXME: don't put listName onto the state root
 		}
-		return state.setIn([ 'models', objectName ], itemData);
+		return state.setIn([ objectName ], itemData);
 	},
 
 	//----------------------------------------------------------------------------
@@ -270,14 +270,14 @@ const actionHandlers = {
 		};
 		//newData.id = newId;
 		if (newId) {
-			newState = newState.setIn([ 'models', objectName, 'data', newId ], fromJS(newData));
+			newState = newState.setIn([ objectName, 'data', newId ], fromJS(newData));
 		}
 		if (args && args.success) {
 			setTimeout(() => {
 				args.success(newData);
 			}, 1);
 		}
-		return newState.setIn([ 'models', objectName, 'crudoState' ], CrudoState.OK);
+		return newState.setIn([ objectName, 'crudoState' ], CrudoState.OK);
 	},
 
 	[actions.CREATE_DATA_FAIL](state, { error, args }) {
@@ -315,11 +315,11 @@ const actionHandlers = {
 		let newState = state;
 		let newData = response ? response.newData : undefined;
 		// const { id } = data;
-		const storeBy = state.getIn([ 'models', objectName, 'storeBy' ]);
+		const storeBy = state.getIn([ objectName, 'storeBy' ]);
 		const id = data[storeBy]
 		if (objectName && id) {
 			if (listName) {
-				let list = state.getIn([ 'models', objectName, 'list' ]);
+				let list = state.getIn([ objectName, 'list' ]);
 				const idx = list.findIndex((value) => {
 					if (value.get(storeBy) === id) {
 						return true;
@@ -330,13 +330,13 @@ const actionHandlers = {
 					let mergeData = list.get(idx).toJS();
 					mergeData = Object.assign(mergeData, data, newData);
 					list = list.set(idx, fromJS(mergeData));
-					newState = state.setIn([ 'models', objectName, 'list' ], list); // TODO what is this?
+					newState = state.setIn([ objectName, 'list' ], list); // TODO what is this?
 				} else {
 					newState = state;
 					debug(`Object ${objectName} with id "${id}" not found in list ${listName}.`);
 				}
 			} else {
-				if (!state.getIn([ 'models', objectName, 'data', id ])) {
+				if (!state.getIn([ objectName, 'data', id ])) {
 					debug(`No object ${objectName} with id ${id} was found.`);
 					if (args && args.success) {
 						setTimeout(() => {
@@ -345,10 +345,10 @@ const actionHandlers = {
 					}
 					return state;
 				}
-				let mergeDataUpd = state.getIn([ 'models', objectName, 'data', id ]).toJS();
+				let mergeDataUpd = state.getIn([ objectName, 'data', id ]).toJS();
 				mergeDataUpd = Object.assign(mergeDataUpd, data, newData);
 				mergeDataUpd.version = mergeDataUpd.version ? (mergeDataUpd.version+1):1;
-				newState = state.setIn([ 'models', objectName, 'data', id ], fromJS(mergeDataUpd));
+				newState = state.setIn([ objectName, 'data', id ], fromJS(mergeDataUpd));
 			}
 		} else if (!objectName) {
 			debug('Respone of updating is missing  objectName. ');
@@ -380,7 +380,7 @@ const actionHandlers = {
 	},
 	[actions.DELETE_DATA_SUCCESS](state, { objectName, id, args }) {
 		if (objectName && id) {
-			return state.deleteIn([ 'models', objectName, 'data', id ]);
+			return state.deleteIn([ objectName, 'data', id ]);
 		}
 		if (args && args.success) {
 			setTimeout(() => {
@@ -478,12 +478,12 @@ const actionHandlers = {
 	 */
 	[actions.LIST_MODELS_SUCCESS] (state, action) {
 		//console.log(state);
-		/*return state.set('models', ImmuMap(action.data.reduce((accu, modelName) => ({
+		/*return state.set(ImmuMap(action.data.reduce((accu, modelName) => ({
 				...accu,
 				[modelName]: null,
 		}), {})));*/
 		// TODO: only if not already set or something.
-		return state.set('models', prepareInitialState(action.data)); // TODO: rid me of the 'storeBy' argument
+		return state.set(repareInitialState(action.data)); // TODO: rid me of the 'storeBy' argument
 	},
 
 	// todo actions.LOAD_MODEL_FAILURE
@@ -502,13 +502,13 @@ const actionHandlers = {
 	 */
 	[actions.LOAD_MODEL_DEFINITION] (state, action) {
 		/*const p = prepareInitialState([action.modelName]).get(action.modelName) // OPTIMIZE: I'm ugly
-		return state.setIn([ 'models', action.modelName ], p)*/
+		return state.setIn([ action.modelName ], p)*/
 		let newState = state;
-		if (!state.hasIn(['models', action.modelName])) {
+		if (!state.hasIn([action.modelName])) {
 			let initialObject = fromJS(getRawObjectState())
-			newState = newState.setIn(['models', action.modelName], initialObject);
+			newState = newState.setIn( action.modelName], initialObject);
 		}
-		return newState.setIn([ 'models', action.modelName, 'definition', 'crudoState' ], CrudoState.LOADING);
+		return newState.setIn([ action.modelName, 'definition', 'crudoState' ], CrudoState.LOADING);
 	},
 
 	/**
@@ -525,11 +525,11 @@ const actionHandlers = {
 	 */
 	[actions.LOAD_MODEL_DEFINITION_SUCCESS] (state, action) {
 		let newState = state
-			.setIn([ 'models', action.modelName, 'definition', 'crudoState' ], CrudoState.OK)
-			.setIn([ 'models', action.modelName, 'definition', 'data'], action.model.schema);
-		if (action.model.meta && action.model.meta.translatable) newState = newState.setIn([ 'models', action.modelName, 'translatable' ], true);
+			.setIn([ action.modelName, 'definition', 'crudoState' ], CrudoState.OK)
+			.setIn([ action.modelName, 'definition', 'data'], action.model.schema);
+		if (action.model.meta && action.model.meta.translatable) newState = newState.setIn([ action.modelName, 'translatable' ], true);
 		return newState;
-		/*return state.setIn([ 'models', action.modelName ], action.model).updateIn(['models',action.modelName], s=> {
+		/*return state.setIn([  action.modelName ], action.model).updateIn([action.modelName], s=> {
 			s.crudoState
 		}'],CrudoState.OK)*/
 	},
