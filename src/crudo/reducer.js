@@ -506,7 +506,7 @@ const actionHandlers = {
 		let newState = state;
 		if (!state.hasIn([action.modelName])) {
 			let initialObject = fromJS(getRawObjectState())
-			newState = newState.setIn( action.modelName], initialObject);
+			newState = newState.setIn([action.modelName], initialObject);
 		}
 		return newState.setIn([ action.modelName, 'definition', 'crudoState' ], CrudoState.LOADING);
 	},
