@@ -221,10 +221,10 @@ const actionHandlers = {
 					itemId = inputItem.id;
 				}*/
 				//if (itemId) {
-					newState = newState.setIn([ objectName, 'data', itemId ], fromJS({
-						crudoState: CrudoState.OK,
-						data: inputItem,
-					}));
+					newState = newState.setIn([ objectName, 'data', itemId ], fromJS(Object.assign(
+						{crudoState: CrudoState.OK},
+						inputItem
+					)));
 				//}
 			});
 		}

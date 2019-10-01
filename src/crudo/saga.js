@@ -190,14 +190,17 @@ const getServer = (defaultServerUrl, crudObjects, objectName, servers = {}) => {
 };
 
 
-export function* getObject({ url, cookieToken, objectsMap, /*crudObjects,*/ servers, customizeFetchRequest }, args) {
+export function* getObject({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, args) {
 	const { objectName, id, query } = args;
 	try {
-		const crudObjects = yield select(state => state.crudo.get('models'));
+		let crudObjectsSrc = yield select(state => state.crudo.get('models'));
+		if (!crudObjectsSrc) {
+			crudObjectsSrc = crudObjects;
+		}
 		const apiObject = getApiObject(objectsMap, objectName);
-		const serverUrl = getServer(url, crudObjects, apiObject, servers);
+		const serverUrl = getServer(url, crudObjectsSrc, apiObject, servers);
 
-		let api = urlResolve.resolve(serverUrl, `${apiObject}/${getObjectUrlId(id, crudObjects, objectName)}`);
+		let api = urlResolve.resolve(serverUrl, `${apiObject}/${getObjectUrlId(id, crudObjectsSrc, objectName)}`);
 		api = addQuery(api, query);
 		let fetchData = {
 			method: 'GET',
