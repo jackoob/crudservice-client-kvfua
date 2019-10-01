@@ -190,6 +190,13 @@ const getServer = (defaultServerUrl, crudObjects, objectName, servers = {}) => {
 };
 
 
+const getDataPreprocessed = (data, action, crudObjects, objectName) => {
+	let dataPreprocessor = crudObjects && crudObjects[objectName] && crudObjects[objectName].dataPreprocessor;
+	if (!dataPreprocessor)
+		return data;
+	return dataPreprocessor(action, data);
+}
+
 export function* getObject({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, args) {
 	const { objectName, id, query } = args;
 	try {
@@ -215,10 +222,11 @@ export function* getObject({ url, cookieToken, objectsMap, crudObjects, servers,
 
 		if (fetchResponse.ok) {
 			const { data } = response;
+			let processedData = getDataPreprocessed(data, actions.GET_DATA_SUCCESS, crudObjects, objectName);
 			yield put({
 				type: actions.GET_DATA_SUCCESS,
 				objectName,
-				data,
+				data: processedData,
 				id,
 				args,
 			});
@@ -278,10 +286,12 @@ export function* getSingleton({ url, cookieToken, objectsMap, crudObjects, serve
 
 		if (fetchResponse.ok) {
 			const { data } = response;
+			let processedData = getDataPreprocessed(data, actions.GET_SINGLETON_SUCCESS, crudObjects, objectName);
+
 			yield put({
 				type: actions.GET_SINGLETON_SUCCESS,
 				objectName,
-				data,
+				data: processedData,
 				args,
 			});
 		} else {
@@ -329,11 +339,12 @@ export function* listData({ url, cookieToken, objectsMap, crudObjects, servers, 
 		const error = { error: 'Problem with calling server' };
 		if (response && response.status === 'success') {
 			const { data } = response;
+			let processedData = getDataPreprocessed(data, actions.LIST_DATA_SUCCESS, crudObjects, objectName);
 			yield put({
 				type: actions.LIST_DATA_SUCCESS,
 				objectName,
 				listName,
-				data,
+				data: processedData,
 			});
 		} else {
 			yield put({
@@ -458,11 +469,12 @@ export function* updateObject({ url, cookieToken, objectsMap, crudObjects, serve
 		// ------------------------------------------------------------------------
 		const error = { error: 'Problem with calling server' };
 		if (response && response.status === 'success') {
+			let processedData = getDataPreprocessed(data, actions.UPDATE_DATA_SUCCESS, crudObjects, objectName);
 			yield put({
 				type: actions.UPDATE_DATA_SUCCESS,
 				objectName,
 				listName,
-				data,
+				data:processedData,
 				args,
 				response,
 			});
@@ -800,6 +812,7 @@ function* getServerConfig (sagaParams, action) {
  * 			body: JSON.stringify(data),
  * 			credentials: 'include' }
  *	  - action:  actions.GET_DATA|GET_SINGLETON|LIST_DATA|CREATE_DATA|UPDATE_DATA|DELETE_DATA|RPC
+ *    - result of customizeFetchRequest are data sent by "fetch" function.
  *
  *
  * @param {*} rawSagaParams

@@ -97,7 +97,7 @@ const actionHandlers = {
 
 	[actions.GET_DATA_SUCCESS](state, { objectName, id, data, args }) {
 
-		const imData = fromJS(Object.assign({},data,{crudoState: CrudoState.OK}));
+		const imData = fromJS(Object.assign({}, data, { crudoState: CrudoState.OK }));
 		let lastVersion = state.getIn([ objectName, 'data', id, 'version' ]);
 
 		let itemData = initObjectSate(state.getIn([ objectName ]));
