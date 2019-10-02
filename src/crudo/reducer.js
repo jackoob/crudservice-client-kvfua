@@ -483,7 +483,7 @@ const actionHandlers = {
 				[modelName]: null,
 		}), {})));*/
 		// TODO: only if not already set or something.
-		return state.set(repareInitialState(action.data)); // TODO: rid me of the 'storeBy' argument
+		return state.set(prepareInitialState(action.data)); // TODO: rid me of the 'storeBy' argument
 	},
 
 	// todo actions.LOAD_MODEL_FAILURE
