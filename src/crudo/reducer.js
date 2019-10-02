@@ -483,7 +483,7 @@ const actionHandlers = {
 				[modelName]: null,
 		}), {})));*/
 		// TODO: only if not already set or something.
-		return state.set(prepareInitialState(action.data)); // TODO: rid me of the 'storeBy' argument
+		return state.set('models', prepareInitialState(action.data)); // TODO: rid me of the 'storeBy' argument
 	},
 
 	// todo actions.LOAD_MODEL_FAILURE
@@ -504,11 +504,11 @@ const actionHandlers = {
 		/*const p = prepareInitialState([action.modelName]).get(action.modelName) // OPTIMIZE: I'm ugly
 		return state.setIn([ action.modelName ], p)*/
 		let newState = state;
-		if (!state.hasIn([action.modelName])) {
+		if (!state.hasIn(['models', action.modelName])) {
 			let initialObject = fromJS(getRawObjectState())
-			newState = newState.setIn([action.modelName], initialObject);
+			newState = newState.setIn(['models', action.modelName], initialObject);
 		}
-		return newState.setIn([ action.modelName, 'definition', 'crudoState' ], CrudoState.LOADING);
+		return newState.setIn(['models',  action.modelName, 'definition', 'crudoState' ], CrudoState.LOADING);
 	},
 
 	/**
@@ -525,8 +525,8 @@ const actionHandlers = {
 	 */
 	[actions.LOAD_MODEL_DEFINITION_SUCCESS] (state, action) {
 		let newState = state
-			.setIn([ action.modelName, 'definition', 'crudoState' ], CrudoState.OK)
-			.setIn([ action.modelName, 'definition', 'data'], action.model.schema);
+			.setIn([ 'models', action.modelName, 'definition', 'crudoState' ], CrudoState.OK)
+			.setIn([ 'models', action.modelName, 'definition', 'data'], action.model.schema);
 		if (action.model.meta && action.model.meta.translatable) newState = newState.setIn([ action.modelName, 'translatable' ], true);
 		return newState;
 		/*return state.setIn([  action.modelName ], action.model).updateIn([action.modelName], s=> {
