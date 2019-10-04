@@ -405,30 +405,32 @@ const actionHandlers = {
 		return initialState;
 	},
 
+	// AUTHENTICATION: Unused code below.
 
-
-	/**
+	/*/!**
 	 * Mark authentication as in progress
+	 * (currently unused)
 	 * @param state
 	 * @returns {*}
-	 */
+	 *!/
 	[actions.AUTHENTICATE] (state) {
 		return state.update('auth', produce(auth => {
 			auth.state = AuthState.IN_PROGRESS;
 		}));
 	},
 
-	/**
+	/!**
 	 * @typedef {CrudoAction} CrudoAction_AuthenticateSuccess
 	 * @property {actions.AUTHENTICATE_SUCCESS} type
 	 * @property {Object} userObject
-	 */
-	/**
+	 *!/
+	/!**
 	 * Mark the authentication as successful (and store the user object)
+	 * (currently unused)
 	 * @param state
 	 * @param {CrudoAction_AuthenticateSuccess} action
 	 * @returns {*}
-	 */
+	 *!/
 	[actions.AUTHENTICATE_SUCCESS] (state, action) {
 		return state.update('auth', produce(auth => {
 			auth.state = AuthState.AUTHED;
@@ -437,18 +439,18 @@ const actionHandlers = {
 		//return state.setIn([ 'userState', 'authenticated' ], true);
 	},
 
-	/**
+	/!**
 	 * @typedef {CrudoAction} CrudoAction_AuthenticateFailure
 	 * @property {actions.AUTHENTICATE_FAILURE} type
 	 * @todo prop error ...
-	 */
-	/**
+	 *!/
+	/!**
 	 * Mark the authentication as failed
 	 * @todo
 	 * @param state
 	 * @param {CrudoAction_AuthenticateFailure} action
 	 * @returns {*}
-	 */
+	 *!/
 	[actions.AUTHENTICATE_FAILURE] (state, action) {
 		return state.update('auth', produce(auth => {
 			auth.state = AuthState.FAILED;
@@ -457,11 +459,11 @@ const actionHandlers = {
 	},
 
 	// TODO logout
-	/*[actions.LOGOUT] (state) {
+	/!*[actions.LOGOUT] (state) {
 		return state.setIn([ 'auth', 'state' ], AuthState.NONE).deleteIn([ 'auth', 'user' ]);
-	},*/
+	},*!/
 
-	// TODO logout failure (or maybe leave that to a saga?)
+	// TODO logout failure (or maybe leave that to a saga?)*/
 
 
 
@@ -608,7 +610,7 @@ function crudoReducer(state = initialState, action) {
  */
 
 export default function getCrudoReducer(objectsArray) {
-	let initialState = prepareInitialState(objectsArray || []).set('auth', initialAuthState);
+	let initialState = prepareInitialState(objectsArray || []); //.set('auth', initialAuthState);
 		return (state = initialState, action) => {
 			const { type } = action;
 			if (type in actionHandlers) {
