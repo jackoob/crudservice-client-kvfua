@@ -174,6 +174,7 @@ const getServer = (defaultServerUrl, crudObjects, objectName, servers = {}) => {
 
 	let resultServerAlias = null;
 	if (crudObjects[objectName] && crudObjects[objectName].server) {
+		// FIXME: this probably cannot ever work because crudObjects is not a {} but an ImmuMap
 		resultServerAlias = crudObjects[objectName].server;
 	}
 
@@ -200,7 +201,7 @@ const getDataPreprocessed = (data, action, crudObjects, objectName) => {
 export function* getObject({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, args) {
 	const { objectName, id, query } = args;
 	try {
-		let crudObjectsSrc = yield select(state => state.crudo.get('models'));
+		/** @type {ImmuMap} */ let crudObjectsSrc = yield select(state => state.crudo);
 		if (!crudObjectsSrc) {
 			crudObjectsSrc = crudObjects;
 		}
@@ -620,7 +621,6 @@ function* checkAndProcessCallbacks(response) {
 
 /**
  * Enumerate models available on the server side
- * @param url
  */
 function* listModels (...args) {
 	try {
@@ -655,7 +655,6 @@ function* listModels (...args) {
 	} catch (e) {
 		yield put({
 			type: actions.LIST_MODELS_FAILURE,
-			hmm: "ys",
 			error:e.message,
 		});
 	}
@@ -733,7 +732,7 @@ function* logout ({ url }) {
 function* loadModelDefinition ({ url }, { modelName }) {
 	// first make sure that this model exists
 	// FIXME: this is probably not the right place to do this check
-	const currentState = yield select(state => state.crudo.getIn([ 'models', modelName, 'crudoState' ]));
+	const currentState = yield select(state => state.crudo.getIn([ modelName, 'crudoState' ]));
 	if (typeof currentState === 'undefined') {
 		// model isn't there : list of models probably not yet loadeded, do that now
 		yield put({ type: actions.LIST_MODELS, });
