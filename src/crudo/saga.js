@@ -792,6 +792,45 @@ function* getServerConfig (sagaParams, action) {
 		});
 	}
 }
+
+/**
+ * SAGA: Get string representations of referenced documents of a given model
+ * @todo reconsider whether this saga actually brings anything to the table as it's just a wrapper for listData.
+ * @param {Object} sagaParams
+ * @param {Object} action
+ * @param {string} action.modelName
+ */
+function* getRefStrings (sagaParams, { modelName }) {
+	// just use list_data with specific parameters
+	const listName = `_stringrep_${modelName}`;
+	yield put({
+		type: actions.LIST_DATA,
+		objectName: modelName,
+		listName,
+		query: { stringRepresentationOnly: true },
+	});
+	const { success, failure } = yield race({
+		success: take(action =>
+			action.type === actions.LIST_DATA_SUCCESS && action.objectName === modelName && action.listName === listName),
+		failure: take(action =>
+			action.type === actions.LIST_DATA_FAIL && action.objectName === modelName && action.listName === listName),
+		//failure: take(actions.LIST_DATA_FAIL),
+	});
+	// TODO: verify that the race really only applies to the case we want and doesn't wreak havoc across others
+	if (failure) {
+		yield put({
+			type: actions.GET_STRING_REPRESENTATIONS_FAILURE,
+			modelName,
+			reason: failure, // TODO strip me
+		});
+	} else {
+		yield put({
+			type: actions.GET_STRING_REPRESENTATIONS_SUCCESS,
+			modelName,
+		});
+	}
+}
+
 // export effects ("sagas")
 /**
  * Saga params contains:
@@ -839,6 +878,8 @@ export const getCudoSaga = (rawSagaParams) => {
 		takeEvery(actions.LIST_MODELS, listModels, sagaParams),
 		takeEvery(actions.LOAD_MODEL_DEFINITION, loadModelDefinition, sagaParams),
 		takeEvery(actions.GET_SERVER_CONFIG, getServerConfig, sagaParams),
+
+		takeEvery(actions.GET_STRING_REPRESENTATIONS, getRefStrings, sagaParams),
 
 		//takeEvery(actions.GET_DOCUMENTS, getDocuments, sagaParams),
 	];

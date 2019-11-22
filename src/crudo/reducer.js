@@ -169,13 +169,15 @@ const actionHandlers = {
 	//----------------------------------------------------------------------------
 	[actions.LIST_DATA](state, { objectName, listName }) {
 		/*let gettingData = initObjectSate(state.getIn([ objectName ]));
-		gettingData = gettingData.set('crudoState', CrudoState.LOADING);*/
-		return state.setIn([ objectName, 'crudoState' ], CrudoState.LOADING);
-		/*if (listName) {
-			// FIXME: repair listName-based feature
-			return state.setIn([listName], gettingData); // FIXME: don't put listName onto the state root
+		gettingData = gettingData.set('crudoState', CrudoState.LOADING);
+		if (listName) {
+			return state.setIn([listName], gettingData);
 		}
-		return state.setIn([ objectName ], gettingData);*/
+		return state.setIn([ objectName ], gettingData);
+		// leaving this here because the below might not be compatible*/
+		if (listName)
+			return state.setIn([ listName, 'crudoState' ], CrudoState.LOADING);
+		return state.setIn([ objectName, 'crudoState' ], CrudoState.LOADING);
 	},
 
 
@@ -532,7 +534,8 @@ const actionHandlers = {
 	[actions.LOAD_MODEL_DEFINITION_SUCCESS] (state, action) {
 		let newState = state
 			.setIn([ action.modelName, 'definition', 'crudoState' ], CrudoState.OK)
-			.setIn([ action.modelName, 'definition', 'data'], action.model.schema);
+			.setIn([ action.modelName, 'definition', 'data' ], action.model.schema)
+			.setIn([ action.modelName, 'refs' ], action.model.refs);
 		if (action.model.meta && action.model.meta.translatable) newState = newState.setIn([ action.modelName, 'translatable' ], true);
 		return newState;
 		/*return state.setIn([  action.modelName ], action.model).updateIn([action.modelName], s=> {
