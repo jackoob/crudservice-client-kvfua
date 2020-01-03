@@ -68,7 +68,7 @@ function prepareInitialState(objects){
 			result[objectInit] = getRawObjectState()
 		else  if (typeof objectInit === "object"){
 			if (!objectInit.key) {
-				console.warn("Object is ignored, becaus it's key is missing: "+require('util').inspect(objectInit));
+				console.warn("Object is ignored, because it's key is missing: "+JSON.stringify(objectInit));
 			} else {
 				result[objectInit.key] = getCustomRawObjectState(objectInit);
 			}
