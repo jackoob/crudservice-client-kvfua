@@ -174,6 +174,7 @@ const getServer = (defaultServerUrl, crudObjects, objectName, servers = {}) => {
 
 	let resultServerAlias = null;
 	if (crudObjects[objectName] && crudObjects[objectName].server) {
+		// FIXME: this probably cannot ever work because crudObjects is not a {} but an ImmuMap
 		resultServerAlias = crudObjects[objectName].server;
 	}
 
@@ -200,7 +201,7 @@ const getDataPreprocessed = (data, action, crudObjects, objectName) => {
 export function* getObject({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, args) {
 	const { objectName, id, query } = args;
 	try {
-		let crudObjectsSrc = yield select(state => state.crudo.get('models'));
+		/** @type {ImmuMap} */ let crudObjectsSrc = yield select(state => state.crudo);
 		if (!crudObjectsSrc) {
 			crudObjectsSrc = crudObjects;
 		}
@@ -620,7 +621,6 @@ function* checkAndProcessCallbacks(response) {
 
 /**
  * Enumerate models available on the server side
- * @param url
  */
 function* listModels (...args) {
 	try {
@@ -655,7 +655,6 @@ function* listModels (...args) {
 	} catch (e) {
 		yield put({
 			type: actions.LIST_MODELS_FAILURE,
-			hmm: "ys",
 			error:e.message,
 		});
 	}
@@ -733,7 +732,7 @@ function* logout ({ url }) {
 function* loadModelDefinition ({ url }, { modelName }) {
 	// first make sure that this model exists
 	// FIXME: this is probably not the right place to do this check
-	const currentState = yield select(state => state.crudo.getIn([ 'models', modelName, 'crudoState' ]));
+	const currentState = yield select(state => state.crudo.getIn([ modelName, 'crudoState' ]));
 	if (typeof currentState === 'undefined') {
 		// model isn't there : list of models probably not yet loadeded, do that now
 		yield put({ type: actions.LIST_MODELS, });
@@ -793,6 +792,45 @@ function* getServerConfig (sagaParams, action) {
 		});
 	}
 }
+
+/**
+ * SAGA: Get string representations of referenced documents of a given model
+ * @todo reconsider whether this saga actually brings anything to the table as it's just a wrapper for listData.
+ * @param {Object} sagaParams
+ * @param {Object} action
+ * @param {string} action.modelName
+ */
+function* getRefStrings (sagaParams, { modelName }) {
+	// just use list_data with specific parameters
+	const listName = `_stringrep_${modelName}`;
+	yield put({
+		type: actions.LIST_DATA,
+		objectName: modelName,
+		listName,
+		query: { stringRepresentationOnly: true },
+	});
+	const { success, failure } = yield race({
+		success: take(action =>
+			action.type === actions.LIST_DATA_SUCCESS && action.objectName === modelName && action.listName === listName),
+		failure: take(action =>
+			action.type === actions.LIST_DATA_FAIL && action.objectName === modelName && action.listName === listName),
+		//failure: take(actions.LIST_DATA_FAIL),
+	});
+	// TODO: verify that the race really only applies to the case we want and doesn't wreak havoc across others
+	if (failure) {
+		yield put({
+			type: actions.GET_STRING_REPRESENTATIONS_FAILURE,
+			modelName,
+			reason: failure, // TODO strip me
+		});
+	} else {
+		yield put({
+			type: actions.GET_STRING_REPRESENTATIONS_SUCCESS,
+			modelName,
+		});
+	}
+}
+
 // export effects ("sagas")
 /**
  * Saga params contains:
@@ -840,6 +878,8 @@ export const getCudoSaga = (rawSagaParams) => {
 		takeEvery(actions.LIST_MODELS, listModels, sagaParams),
 		takeEvery(actions.LOAD_MODEL_DEFINITION, loadModelDefinition, sagaParams),
 		takeEvery(actions.GET_SERVER_CONFIG, getServerConfig, sagaParams),
+
+		takeEvery(actions.GET_STRING_REPRESENTATIONS, getRefStrings, sagaParams),
 
 		//takeEvery(actions.GET_DOCUMENTS, getDocuments, sagaParams),
 	];

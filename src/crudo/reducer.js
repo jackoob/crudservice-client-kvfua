@@ -169,13 +169,15 @@ const actionHandlers = {
 	//----------------------------------------------------------------------------
 	[actions.LIST_DATA](state, { objectName, listName }) {
 		/*let gettingData = initObjectSate(state.getIn([ objectName ]));
-		gettingData = gettingData.set('crudoState', CrudoState.LOADING);*/
-		return state.setIn([ objectName, 'crudoState' ], CrudoState.LOADING);
-		/*if (listName) {
-			// FIXME: repair listName-based feature
-			return state.setIn([listName], gettingData); // FIXME: don't put listName onto the state root
+		gettingData = gettingData.set('crudoState', CrudoState.LOADING);
+		if (listName) {
+			return state.setIn([listName], gettingData);
 		}
-		return state.setIn([ objectName ], gettingData);*/
+		return state.setIn([ objectName ], gettingData);
+		// leaving this here because the below might not be compatible*/
+		if (listName)
+			return state.setIn([ listName, 'crudoState' ], CrudoState.LOADING);
+		return state.setIn([ objectName, 'crudoState' ], CrudoState.LOADING);
 	},
 
 
@@ -405,30 +407,32 @@ const actionHandlers = {
 		return initialState;
 	},
 
+	// AUTHENTICATION: Unused code below.
 
-
-	/**
+	/*/!**
 	 * Mark authentication as in progress
+	 * (currently unused)
 	 * @param state
 	 * @returns {*}
-	 */
+	 *!/
 	[actions.AUTHENTICATE] (state) {
 		return state.update('auth', produce(auth => {
 			auth.state = AuthState.IN_PROGRESS;
 		}));
 	},
 
-	/**
+	/!**
 	 * @typedef {CrudoAction} CrudoAction_AuthenticateSuccess
 	 * @property {actions.AUTHENTICATE_SUCCESS} type
 	 * @property {Object} userObject
-	 */
-	/**
+	 *!/
+	/!**
 	 * Mark the authentication as successful (and store the user object)
+	 * (currently unused)
 	 * @param state
 	 * @param {CrudoAction_AuthenticateSuccess} action
 	 * @returns {*}
-	 */
+	 *!/
 	[actions.AUTHENTICATE_SUCCESS] (state, action) {
 		return state.update('auth', produce(auth => {
 			auth.state = AuthState.AUTHED;
@@ -437,18 +441,18 @@ const actionHandlers = {
 		//return state.setIn([ 'userState', 'authenticated' ], true);
 	},
 
-	/**
+	/!**
 	 * @typedef {CrudoAction} CrudoAction_AuthenticateFailure
 	 * @property {actions.AUTHENTICATE_FAILURE} type
 	 * @todo prop error ...
-	 */
-	/**
+	 *!/
+	/!**
 	 * Mark the authentication as failed
 	 * @todo
 	 * @param state
 	 * @param {CrudoAction_AuthenticateFailure} action
 	 * @returns {*}
-	 */
+	 *!/
 	[actions.AUTHENTICATE_FAILURE] (state, action) {
 		return state.update('auth', produce(auth => {
 			auth.state = AuthState.FAILED;
@@ -457,11 +461,11 @@ const actionHandlers = {
 	},
 
 	// TODO logout
-	/*[actions.LOGOUT] (state) {
+	/!*[actions.LOGOUT] (state) {
 		return state.setIn([ 'auth', 'state' ], AuthState.NONE).deleteIn([ 'auth', 'user' ]);
-	},*/
+	},*!/
 
-	// TODO logout failure (or maybe leave that to a saga?)
+	// TODO logout failure (or maybe leave that to a saga?)*/
 
 
 
@@ -483,7 +487,11 @@ const actionHandlers = {
 				[modelName]: null,
 		}), {})));*/
 		// TODO: only if not already set or something.
-		return state.set('models', prepareInitialState(action.data)); // TODO: rid me of the 'storeBy' argument
+		let newState = state;
+		for (const modelName of action.data) {
+			newState = newState.set(modelName, fromJS(getRawObjectState()));
+		}
+		return newState;
 	},
 
 	// todo actions.LOAD_MODEL_FAILURE
@@ -504,11 +512,11 @@ const actionHandlers = {
 		/*const p = prepareInitialState([action.modelName]).get(action.modelName) // OPTIMIZE: I'm ugly
 		return state.setIn([ action.modelName ], p)*/
 		let newState = state;
-		if (!state.hasIn(['models', action.modelName])) {
+		if (!state.has(action.modelName)) {
 			let initialObject = fromJS(getRawObjectState())
-			newState = newState.setIn(['models', action.modelName], initialObject);
+			newState = newState.set(action.modelName, initialObject);
 		}
-		return newState.setIn(['models',  action.modelName, 'definition', 'crudoState' ], CrudoState.LOADING);
+		return newState.setIn([ action.modelName, 'definition', 'crudoState' ], CrudoState.LOADING);
 	},
 
 	/**
@@ -525,8 +533,9 @@ const actionHandlers = {
 	 */
 	[actions.LOAD_MODEL_DEFINITION_SUCCESS] (state, action) {
 		let newState = state
-			.setIn([ 'models', action.modelName, 'definition', 'crudoState' ], CrudoState.OK)
-			.setIn([ 'models', action.modelName, 'definition', 'data'], action.model.schema);
+			.setIn([ action.modelName, 'definition', 'crudoState' ], CrudoState.OK)
+			.setIn([ action.modelName, 'definition', 'data' ], action.model.schema)
+			.setIn([ action.modelName, 'refs' ], action.model.refs);
 		if (action.model.meta && action.model.meta.translatable) newState = newState.setIn([ action.modelName, 'translatable' ], true);
 		return newState;
 		/*return state.setIn([  action.modelName ], action.model).updateIn([action.modelName], s=> {
@@ -604,7 +613,7 @@ function crudoReducer(state = initialState, action) {
  */
 
 export default function getCrudoReducer(objectsArray) {
-	let initialState = prepareInitialState(objectsArray || []).set('auth', initialAuthState);
+	let initialState = prepareInitialState(objectsArray || []); //.set('auth', initialAuthState);
 		return (state = initialState, action) => {
 			const { type } = action;
 			if (type in actionHandlers) {
