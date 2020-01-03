@@ -267,7 +267,7 @@ const actionHandlers = {
 	}) {
 		let newState = state;
 		const newData = {
-			state: CrudoState.OK,
+			crudoState: CrudoState.OK,
 			data,
 		};
 		//newData.id = newId;
