@@ -378,7 +378,7 @@ const getErrorResponse = (fetchResponse, responseData) => {
 };
 
 export function* createObject({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, args) {
-	const { objectName, data, query } = args;
+	const { objectName, data, query, multipart } = args;
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
 		const serverUrl = getServer(url, crudObjects, apiObject, servers);
@@ -387,9 +387,10 @@ export function* createObject({ url, cookieToken, objectsMap, crudObjects, serve
 		let fetchData = {
 			method: 'POST',
 			headers: getHeaders(cookieToken),
-			body: JSON.stringify(data),
+			body: multipart ? data : JSON.stringify(data),
 			credentials: 'include',
 		};
+		if (multipart) delete fetchData.headers['Content-Type'];
 		if (customizeFetchRequest) {
 			fetchData = customizeFetchRequest(fetchData, actions.CREATE_DATA);
 		}
@@ -436,7 +437,7 @@ export function* createObject({ url, cookieToken, objectsMap, crudObjects, serve
 }
 
 export function* updateObject({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, args) {
-	const { objectName, listName, data, query, documentIdentifier } = args;
+	const { objectName, listName, data, query, documentIdentifier, multipart } = args;
 
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
@@ -453,9 +454,10 @@ export function* updateObject({ url, cookieToken, objectsMap, crudObjects, serve
 		let fetchData = {
 			method: 'PUT',
 			headers: getHeaders(cookieToken),
-			body: JSON.stringify(sendData),
+			body: multipart ? sendData : JSON.stringify(sendData),
 			credentials: 'include',
 		};
+		if (multipart) delete fetchData.headers['Content-Type'];
 		if (customizeFetchRequest) {
 			fetchData = customizeFetchRequest(fetchData, actions.UPDATE_DATA);
 		}
