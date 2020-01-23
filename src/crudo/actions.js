@@ -3,11 +3,11 @@ import { actions } from './constants';
 /**
  * Function gets object's data from server and store it into reducer.
  * The data are stored each time, so this function can be called also for data actualization on client side.
- * 
- * @param {string} objectName 
- * @param {string} id 
- * @param {Function} success 
- * @param {Function} fail 
+ *
+ * @param {string} objectName
+ * @param {string} id
+ * @param {Function} success
+ * @param {Function} fail
  */
 export function getData( objectName, id, success, fail, query)  {
 	return {
@@ -31,9 +31,9 @@ export function invalidateData( objectName, ids)  {
 /**
  * Function calls the singleton endpoint of object "objectName" ant store's the result.
  * The data are actualized each time.
- * 
- * @param {string} objectName 
- * @param {*} params 
+ *
+ * @param {string} objectName
+ * @param {*} params
  */
 export function getSingleton( objectName, params, query) {
 	return {
@@ -46,11 +46,11 @@ export function getSingleton( objectName, params, query) {
 
 /**
  * Function creates the data on server. Server returns id of the record ant current data are stored under this id.
- * 
- * @param {string} objectName 
- * @param {*} data 
- * @param {Function} success 
- * @param {Function} fail 
+ *
+ * @param {string} objectName
+ * @param {*} data
+ * @param {Function} success
+ * @param {Function} fail
  */
 export function createData(objectName, data, success, fail, query) {
 	return {
@@ -65,11 +65,11 @@ export function createData(objectName, data, success, fail, query) {
 
 /**
  * Function updates object on server. Data must contain "id" attribute.
- * 
- * @param {string} objectName 
+ *
+ * @param {string} objectName
  * @param {*} data Object data. It must contain "id" attribute
- * @param {Function} success 
- * @param {Function} fail 
+ * @param {Function} success
+ * @param {Function} fail
  */
 export function updateData(objectName, data, success, fail, query) {
 	return {
@@ -84,12 +84,12 @@ export function updateData(objectName, data, success, fail, query) {
 
 /**
  * If update of "listed" data are needed, use this function.
- * 
- * @param {string} objectName 
- * @param {string} listName 
- * @param {*} data 
- * @param {Function} success 
- * @param {Function} fail 
+ *
+ * @param {string} objectName
+ * @param {string} listName
+ * @param {*} data
+ * @param {Function} success
+ * @param {Function} fail
  */
 export function updateListData(objectName, listName, data, success, fail, query) {
 	return {
@@ -105,11 +105,11 @@ export function updateListData(objectName, listName, data, success, fail, query)
 
 /**
  * Delete the data from server.
- * 
- * @param {string} objectName 
- * @param {String} id 
- * @param {Function} success 
- * @param {Function} fail 
+ *
+ * @param {string} objectName
+ * @param {String} id
+ * @param {Function} success
+ * @param {Function} fail
  */
 export function deleteData(objectName, id, success, fail, query) {
 	return {
@@ -124,15 +124,17 @@ export function deleteData(objectName, id, success, fail, query) {
 
 /**
  * List all data from server of object "objectName"
- * 
- * @param {*} param - that contains "objectName" and optional "listName" 
+ *
+ * @param {*} param - that contains "objectName" and optional "listName"
  */
-export function listData({ objectName, listName, query }) {
+export function listData({ objectName, listName, query, success, fail }) {
 	return {
 		type: actions.LIST_DATA,
 		objectName,
 		listName,
 		query,
+		success,
+		fail,
 	};
 }
 
@@ -147,12 +149,12 @@ export function clearData() {
 
 /**
  * Call the remote function on server.
- * 
- * @param {string} objectName 
- * @param {string} rpcName 
- * @param {*} data 
- * @param {Function} success 
- * @param {Function} fail 
+ *
+ * @param {string} objectName
+ * @param {string} rpcName
+ * @param {*} data
+ * @param {Function} success
+ * @param {Function} fail
  */
 export function rpc( objectName, rpcName, data, success, fail, query)  {
 	return {
