@@ -199,7 +199,7 @@ const getDataPreprocessed = (data, action, crudObjects, objectName) => {
 }
 
 export function* getObject({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, args) {
-	const { objectName, id, query } = args;
+	const { objectName, id, query, success, fail } = args;
 	try {
 		/** @type {ImmuMap} */ let crudObjectsSrc = yield select(state => state.crudo);
 		if (!crudObjectsSrc) {
@@ -231,6 +231,7 @@ export function* getObject({ url, cookieToken, objectsMap, crudObjects, servers,
 				id,
 				args,
 			});
+			if (success) success(processedData);
 		} else {
 			const error = getErrorResponse(fetchResponse, response);
 			yield put({
@@ -240,6 +241,7 @@ export function* getObject({ url, cookieToken, objectsMap, crudObjects, servers,
 				id,
 				args,
 			});
+			if (fail) fail(error);
 		}
 	} catch (exception) {
 		/*const error = {
@@ -247,7 +249,7 @@ export function* getObject({ url, cookieToken, objectsMap, crudObjects, servers,
 			statusText: '',
 			error: 'Problem with contacting the server.',
 		};*/
-		console.error((exception))
+		//console.error((exception))
 		// if e.msg == 'b undefined' -> didn't yet get list of models
 		yield put({
 			type: actions.GET_DATA_FAIL,
@@ -260,6 +262,7 @@ export function* getObject({ url, cookieToken, objectsMap, crudObjects, servers,
 			id,
 			args,
 		});
+		if (fail) fail(exception);
 	}
 }
 
@@ -318,7 +321,10 @@ export function* getSingleton({ url, cookieToken, objectsMap, crudObjects, serve
 		});
 	}
 }
-export function* listData({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, { objectName, listName, query }) {
+export function* listData (
+	{ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest },
+	{ objectName, listName, query, success, fail }
+) {
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
 		const serverUrl = getServer(url, crudObjects, apiObject, servers);
@@ -347,6 +353,7 @@ export function* listData({ url, cookieToken, objectsMap, crudObjects, servers, 
 				listName,
 				data: processedData,
 			});
+			if (success) success(processedData);
 		} else {
 			yield put({
 				type: actions.LIST_DATA_FAIL,
@@ -354,6 +361,7 @@ export function* listData({ url, cookieToken, objectsMap, crudObjects, servers, 
 				listName,
 				error,
 			});
+			if (fail) fail(error);
 		}
 	} catch (exception) {
 		yield put({
@@ -362,6 +370,7 @@ export function* listData({ url, cookieToken, objectsMap, crudObjects, servers, 
 			listName,
 			error: exception,
 		});
+		if (fail) fail(exception);
 	}
 }
 
@@ -378,7 +387,7 @@ const getErrorResponse = (fetchResponse, responseData) => {
 };
 
 export function* createObject({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, args) {
-	const { objectName, data, query } = args;
+	const { objectName, data, query, multipart, success, fail } = args;
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
 		const serverUrl = getServer(url, crudObjects, apiObject, servers);
@@ -387,9 +396,10 @@ export function* createObject({ url, cookieToken, objectsMap, crudObjects, serve
 		let fetchData = {
 			method: 'POST',
 			headers: getHeaders(cookieToken),
-			body: JSON.stringify(data),
+			body: multipart ? data : JSON.stringify(data),
 			credentials: 'include',
 		};
+		if (multipart) delete fetchData.headers['Content-Type'];
 		if (customizeFetchRequest) {
 			fetchData = customizeFetchRequest(fetchData, actions.CREATE_DATA);
 		}
@@ -409,6 +419,7 @@ export function* createObject({ url, cookieToken, objectsMap, crudObjects, serve
 				args,
 				response,
 			});
+			if (success) success(newId);
 		} else {
 			const error = getErrorResponse(fetchResponse, response);
 			yield put({
@@ -418,6 +429,7 @@ export function* createObject({ url, cookieToken, objectsMap, crudObjects, serve
 				args,
 				response,
 			});
+			if (fail) fail(error);
 		}
 		yield* checkAndProcessCallbacks(response);
 	} catch (exception) {
@@ -432,11 +444,21 @@ export function* createObject({ url, cookieToken, objectsMap, crudObjects, serve
 			error,
 			args,
 		});
+		if (fail) fail(exception);
 	}
 }
 
 export function* updateObject({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, args) {
-	const { objectName, listName, data, query, documentIdentifier } = args;
+	const {
+		objectName,
+		listName,
+		data,
+		query,
+		documentIdentifier,
+		multipart,
+		success,
+		fail,
+	} = args;
 
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
@@ -453,9 +475,10 @@ export function* updateObject({ url, cookieToken, objectsMap, crudObjects, serve
 		let fetchData = {
 			method: 'PUT',
 			headers: getHeaders(cookieToken),
-			body: JSON.stringify(sendData),
+			body: multipart ? sendData : JSON.stringify(sendData),
 			credentials: 'include',
 		};
+		if (multipart) delete fetchData.headers['Content-Type'];
 		if (customizeFetchRequest) {
 			fetchData = customizeFetchRequest(fetchData, actions.UPDATE_DATA);
 		}
@@ -479,6 +502,7 @@ export function* updateObject({ url, cookieToken, objectsMap, crudObjects, serve
 				args,
 				response,
 			});
+			if (success) success(processedData);
 		} else {
 			yield put({
 				type: actions.UPDATE_DATA_FAIL,
@@ -489,6 +513,7 @@ export function* updateObject({ url, cookieToken, objectsMap, crudObjects, serve
 				args,
 				response,
 			});
+			if (fail) fail(error);
 		}
 		yield* checkAndProcessCallbacks(response);
 
@@ -501,6 +526,7 @@ export function* updateObject({ url, cookieToken, objectsMap, crudObjects, serve
 			data,
 			error: exception,
 		});
+		if (fail) fail(exception);
 	}
 }
 
@@ -508,7 +534,14 @@ export function* updateObject({ url, cookieToken, objectsMap, crudObjects, serve
 
 
 export function* deleteObject({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, args) {
-	const { objectName, /*id,*/ query, documentIdentifier } = args;
+	const {
+		objectName,
+		/*id,*/
+		query,
+		documentIdentifier,
+		success,
+		fail,
+	} = args;
 
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
@@ -517,8 +550,7 @@ export function* deleteObject({ url, cookieToken, objectsMap, crudObjects, serve
 		let api = urlResolve.resolve(serverUrl, `${apiObject}/${key}`);
 		api = addQuery(api, query);
 
-		console.log(api);
-
+		//console.log(api);
 		let fetchData = {
 			method: 'DELETE',
 			headers: getHeaders(cookieToken),
@@ -542,7 +574,7 @@ export function* deleteObject({ url, cookieToken, objectsMap, crudObjects, serve
 				id: key, // FIXME: legacy
 				args,
 			});
-
+			if (success) success();
 		} else {
 			yield put({
 				type: actions.DELETE_DATA_FAIL,
@@ -550,6 +582,7 @@ export function* deleteObject({ url, cookieToken, objectsMap, crudObjects, serve
 				error,
 				args,
 			});
+			if (fail) fail(error);
 		}
 		yield* checkAndProcessCallbacks(response);
 	} catch (exception) {
@@ -559,6 +592,7 @@ export function* deleteObject({ url, cookieToken, objectsMap, crudObjects, serve
 			error: exception,
 			args,
 		});
+		if (fail) fail(exception);
 	}
 }
 
