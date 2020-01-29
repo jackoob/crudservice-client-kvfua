@@ -79,6 +79,7 @@ function prepareInitialState(objects){
 	return fromJS(result);
 }
 
+let initialState = {};
 
 const actionHandlers = {
 	//----------------------------------------------------------------------------
@@ -613,7 +614,7 @@ function crudoReducer(state = initialState, action) {
  */
 
 export default function getCrudoReducer(objectsArray) {
-	let initialState = prepareInitialState(objectsArray || []); //.set('auth', initialAuthState);
+	initialState = prepareInitialState(objectsArray || []); //.set('auth', initialAuthState);
 		return (state = initialState, action) => {
 			const { type } = action;
 			if (type in actionHandlers) {
