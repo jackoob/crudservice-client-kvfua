@@ -471,82 +471,6 @@ const actionHandlers = {
 
 
 	/**
-	 * @typedef {CrudoAction} CrudoListModelsSuccessAction
-	 * @property {actions.LIST_MODELS_SUCCESS} type
-	 * @property {*} data
-	 */
-	/**
-	 * Get a list of models from a server
-	 * @param state
-	 * @param {CrudoListModelsSuccessAction} action
-	 * @return {*}
-	 */
-	[actions.LIST_MODELS_SUCCESS] (state, action) {
-		//console.log(state);
-		/*return state.set(ImmuMap(action.data.reduce((accu, modelName) => ({
-				...accu,
-				[modelName]: null,
-		}), {})));*/
-		// TODO: only if not already set or something.
-		let newState = state;
-		for (const modelName of action.data) {
-			newState = newState.set(modelName, fromJS(getRawObjectState()));
-		}
-		return newState;
-	},
-
-	// todo actions.LOAD_MODEL_FAILURE
-
-
-	/**
-	 * @typedef {CrudoAction} CrudoAction_LoadModelDefinition
-	 * @property {actions.LOAD_MODEL_DEFINITION} type
-	 * @property {string} modelName
-	 */
-	/**
-	 * ACTION HANDLER: Load a model definition from its server
-	 * @param state
-	 * @param {CrudoAction_LoadModelDefinition} action
-	 * @return {*}
-	 */
-	[actions.LOAD_MODEL_DEFINITION] (state, action) {
-		/*const p = prepareInitialState([action.modelName]).get(action.modelName) // OPTIMIZE: I'm ugly
-		return state.setIn([ action.modelName ], p)*/
-		let newState = state;
-		if (!state.has(action.modelName)) {
-			let initialObject = fromJS(getRawObjectState())
-			newState = newState.set(action.modelName, initialObject);
-		}
-		return newState.setIn([ action.modelName, 'definition', 'crudoState' ], CrudoState.LOADING);
-	},
-
-	/**
-	 * @typedef {CrudoAction} CrudoAction_LoadModelDefinitionSuccess
-	 * @property {actions.LOAD_MODEL_DEFINITION_SUCCESS} type
-	 * @property {string} modelName
-	 * @property {*} model Model definition
-	 */
-	/**
-	 * ACTION HANDLER: Process loaded model definition
-	 * @param state
-	 * @param {CrudoAction_LoadModelDefinitionSuccess} action
-	 * @return {*}
-	 */
-	[actions.LOAD_MODEL_DEFINITION_SUCCESS] (state, action) {
-		let newState = state
-			.setIn([ action.modelName, 'definition', 'crudoState' ], CrudoState.OK)
-			.setIn([ action.modelName, 'definition', 'data' ], action.model.schema)
-			.setIn([ action.modelName, 'refs' ], action.model.refs);
-		if (action.model.meta && action.model.meta.translatable) newState = newState.setIn([ action.modelName, 'translatable' ], true);
-		return newState;
-		/*return state.setIn([  action.modelName ], action.model).updateIn([action.modelName], s=> {
-			s.crudoState
-		}'],CrudoState.OK)*/
-	},
-	// todo fail
-
-
-	/**
 	 * @typedef {CrudoAction} CrudoAction_GetServerConfig
 	 * @property {actions.GET_SERVER_CONFIG} type
 	 */
@@ -566,6 +490,8 @@ const actionHandlers = {
 	 * @typedef {CrudoAction} CrudoAction_GetServerConfigSuccess
 	 * @property {actions.GET_SERVER_CONFIG_SUCCESS} type
 	 * @property {string[]} [languages]
+	 * @property {string[]} modelList
+	 * @property {Object.<string, *>} models
 	 */
 	/**
 	 * Store server-provided config
@@ -574,12 +500,25 @@ const actionHandlers = {
 	 * @returns {*}
 	 */
 	[actions.GET_SERVER_CONFIG_SUCCESS] (state, action) {
-		return state
+		let newState = state
 			.setIn([ '_crudoConfig', 'data' ], fromJS({
-				...action,
+				//...action,
 				type: undefined,
+				languages: action.languages,
 			}))
 			.setIn([ '_crudoConfig', 'crudoState' ], CrudoState.OK);
+
+		for (const modelName of action.modelList) {
+			newState = newState
+				.setIn([ modelName, 'definition', 'crudoState' ], CrudoState.OK)
+				.setIn([ modelName, 'definition', 'data' ], action.models[modelName].schema)
+				.setIn([ modelName, 'refs' ], action.models[modelName].refs)
+			;
+			if (action.models[modelName].meta && action.models[modelName].meta.translatable)
+				newState = newState.setIn([ modelName, 'translatable' ], true);
+		}
+
+		return newState;
 	},
 
 	/**

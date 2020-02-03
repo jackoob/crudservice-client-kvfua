@@ -654,47 +654,6 @@ function* checkAndProcessCallbacks(response) {
 }
 
 /**
- * Enumerate models available on the server side
- */
-function* listModels (...args) {
-	try {
-		//console.log(args[0].crudObjects)
-		const url = args[0].url
-		/*const response = yield call(
-			fetch,
-			urlResolve.resolve(url, `/sys/models`),
-			{
-				method: 'GET',
-				headers: getHeaders(cookieToken), //todo redo
-				credentials: 'include',
-			}
-		);
-		const parsedResponse = yield call([ response, response.json ]);
-		if (parsedResponse && parsedResponse.status === 'success') {
-			yield put({
-				type: actions.LIST_MODELS_SUCCESS,
-				data: parsedResponse.data,
-			});
-		} else throw new Error(response); // todo make it better*/
-		const resp = yield call(apiRequest, {
-			url: urlResolve.resolve(url, '/sys/models'),
-			method: 'GET',
-			cookie: true,
-			json: true,
-		});
-		yield put({
-			type: actions.LIST_MODELS_SUCCESS,
-			data: resp.body.data,
-		});
-	} catch (e) {
-		yield put({
-			type: actions.LIST_MODELS_FAILURE,
-			error:e.message,
-		});
-	}
-}
-
-/**
  * Perform an authentication attempt using provided user credentials. If successful, a session cookie will be created.
  * @param {string} url
  * @param {string} username
@@ -754,50 +713,6 @@ function* logout ({ url }) {
 		yield put({
 			type: actions.LOGOUT_FAILURE,
 			error: e,
-		});
-	}
-}
-
-/**
- * Load a model's definition through the system route
- * @param {string} url
- * @param {string} modelName
- */
-function* loadModelDefinition ({ url }, { modelName }) {
-	// first make sure that this model exists
-	// FIXME: this is probably not the right place to do this check
-	const currentState = yield select(state => state.crudo.getIn([ modelName, 'crudoState' ]));
-	if (typeof currentState === 'undefined') {
-		// model isn't there : list of models probably not yet loadeded, do that now
-		yield put({ type: actions.LIST_MODELS, });
-		const { success, failure } = yield race({
-			success: take(actions.LIST_MODELS_SUCCESS),
-			failure: take(actions.LIST_MODELS_FAILURE),
-		});
-		if (failure) {
-			// there's no reason to continue this saga, something has already gone wrong and is hopefully being handled
-			return;
-		} else if (success) {
-			// give the reducer some time to process the response and then continue this saga as we're okay now
-			yield delay(10);
-		}
-	}
-	try {
-		const resp = yield call(apiRequest, {
-			url: urlResolve.resolve(url, `/sys/models/${modelName}`),
-			method: 'GET',
-			cookie: true,
-			json: true,
-		});
-		yield put({
-			type: actions.LOAD_MODEL_DEFINITION_SUCCESS,
-			modelName,
-			model: resp.body.data,
-		});
-	} catch (e) {
-		yield put({
-			type: actions.LOAD_MODEL_DEFINITION_FAILURE,
-			error: e.message,
 		});
 	}
 }
@@ -909,8 +824,6 @@ export const getCudoSaga = (rawSagaParams) => {
 
 		takeEvery(actions.AUTHENTICATE, authenticate, sagaParams),
 		takeEvery(actions.LOGOUT, logout, sagaParams),
-		takeEvery(actions.LIST_MODELS, listModels, sagaParams),
-		takeEvery(actions.LOAD_MODEL_DEFINITION, loadModelDefinition, sagaParams),
 		takeEvery(actions.GET_SERVER_CONFIG, getServerConfig, sagaParams),
 
 		takeEvery(actions.GET_STRING_REPRESENTATIONS, getRefStrings, sagaParams),
