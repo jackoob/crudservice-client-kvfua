@@ -1,6 +1,6 @@
 {
   "name": "crudservice-client",
-  "version": "0.2.63",
+  "version": "0.2.64",
   "private": true,
   "author": "Grappes s.r.o.",
   "description": "Grappes Crud client service for Crudo backend",
