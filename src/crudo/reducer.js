@@ -502,9 +502,10 @@ const actionHandlers = {
 	[actions.GET_SERVER_CONFIG_SUCCESS] (state, action) {
 		let newState = state
 			.setIn([ '_crudoConfig', 'data' ], fromJS({
-				//...action,
+				...action,
 				type: undefined,
-				languages: action.languages,
+				models: undefined,
+				modelList: undefined,
 			}))
 			.setIn([ '_crudoConfig', 'crudoState' ], CrudoState.OK);
 
