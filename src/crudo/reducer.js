@@ -513,6 +513,7 @@ const actionHandlers = {
 			newState = newState
 				.setIn([ modelName, 'definition', 'crudoState' ], CrudoState.OK)
 				.setIn([ modelName, 'definition', 'data' ], action.models[modelName].schema)
+				.setIn([ modelName, 'definition', 'meta' ], action.models[modelName].meta)
 				.setIn([ modelName, 'refs' ], action.models[modelName].refs)
 			;
 			if (action.models[modelName].meta && action.models[modelName].meta.translatable)

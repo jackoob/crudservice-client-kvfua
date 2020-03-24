@@ -383,6 +383,7 @@ const getErrorResponse = (fetchResponse, responseData) => {
 		statusText: fetchResponse.statusText,
 		error: responseData.description,
 		faultyProperty: responseData.faultyProperty,
+		fullResponse: responseData,
 	};
 };
 
