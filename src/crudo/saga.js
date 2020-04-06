@@ -199,7 +199,7 @@ const getDataPreprocessed = (data, action, crudObjects, objectName) => {
 }
 
 export function* getObject({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, args) {
-	const { objectName, id, query, success, fail } = args;
+const { objectName, id, query, /* success, fail*/ } = args;
 	try {
 		/** @type {ImmuMap} */ let crudObjectsSrc = yield select(state => state.crudo);
 		if (!crudObjectsSrc) {
@@ -231,7 +231,7 @@ export function* getObject({ url, cookieToken, objectsMap, crudObjects, servers,
 				id,
 				args,
 			});
-			if (success) success(processedData);
+			// if (success) success(processedData);
 		} else {
 			const error = getErrorResponse(fetchResponse, response);
 			yield put({
@@ -241,7 +241,7 @@ export function* getObject({ url, cookieToken, objectsMap, crudObjects, servers,
 				id,
 				args,
 			});
-			if (fail) fail(error);
+			// if (fail) fail(error);
 		}
 	} catch (exception) {
 		/*const error = {
@@ -262,7 +262,7 @@ export function* getObject({ url, cookieToken, objectsMap, crudObjects, servers,
 			id,
 			args,
 		});
-		if (fail) fail(exception);
+		// if (fail) fail(exception);
 	}
 }
 
