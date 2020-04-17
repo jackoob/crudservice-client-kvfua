@@ -199,7 +199,7 @@ const getDataPreprocessed = (data, action, crudObjects, objectName) => {
 }
 
 export function* getObject({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, args) {
-const { objectName, id, query, /* success, fail*/ } = args;
+	const { objectName, id, query } = args;
 	try {
 		/** @type {ImmuMap} */ let crudObjectsSrc = yield select(state => state.crudo);
 		if (!crudObjectsSrc) {
@@ -231,7 +231,6 @@ const { objectName, id, query, /* success, fail*/ } = args;
 				id,
 				args,
 			});
-			// if (success) success(processedData);
 		} else {
 			const error = getErrorResponse(fetchResponse, response);
 			yield put({
@@ -241,7 +240,6 @@ const { objectName, id, query, /* success, fail*/ } = args;
 				id,
 				args,
 			});
-			// if (fail) fail(error);
 		}
 	} catch (exception) {
 		/*const error = {
@@ -262,7 +260,6 @@ const { objectName, id, query, /* success, fail*/ } = args;
 			id,
 			args,
 		});
-		// if (fail) fail(exception);
 	}
 }
 
@@ -308,6 +305,7 @@ export function* getSingleton({ url, cookieToken, objectsMap, crudObjects, serve
 			});
 		}
 	} catch (exception) {
+		// FIXME!
 		const error = {
 			status: 404,
 			statusText: '',
@@ -323,7 +321,7 @@ export function* getSingleton({ url, cookieToken, objectsMap, crudObjects, serve
 }
 export function* listData (
 	{ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest },
-	{ objectName, listName, query, success, fail }
+	{ objectName, listName, query }
 ) {
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
@@ -353,7 +351,6 @@ export function* listData (
 				listName,
 				data: processedData,
 			});
-			if (success) success(processedData);
 		} else {
 			yield put({
 				type: actions.LIST_DATA_FAIL,
@@ -361,7 +358,6 @@ export function* listData (
 				listName,
 				error,
 			});
-			if (fail) fail(error);
 		}
 	} catch (exception) {
 		yield put({
@@ -370,7 +366,6 @@ export function* listData (
 			listName,
 			error: exception,
 		});
-		if (fail) fail(exception);
 	}
 }
 
@@ -388,7 +383,7 @@ const getErrorResponse = (fetchResponse, responseData) => {
 };
 
 export function* createObject({ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest }, args) {
-	const { objectName, data, query, multipart, success, fail } = args;
+	const { objectName, data, query, multipart } = args;
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
 		const serverUrl = getServer(url, crudObjects, apiObject, servers);
@@ -420,7 +415,6 @@ export function* createObject({ url, cookieToken, objectsMap, crudObjects, serve
 				args,
 				response,
 			});
-			if (success) success(newId);
 		} else {
 			const error = getErrorResponse(fetchResponse, response);
 			yield put({
@@ -430,10 +424,10 @@ export function* createObject({ url, cookieToken, objectsMap, crudObjects, serve
 				args,
 				response,
 			});
-			if (fail) fail(error);
 		}
 		yield* checkAndProcessCallbacks(response);
 	} catch (exception) {
+		// FIXME!
 		const error = {
 			status: 404,
 			statusText: '',
@@ -445,7 +439,6 @@ export function* createObject({ url, cookieToken, objectsMap, crudObjects, serve
 			error,
 			args,
 		});
-		if (fail) fail(exception);
 	}
 }
 
@@ -457,8 +450,6 @@ export function* updateObject({ url, cookieToken, objectsMap, crudObjects, serve
 		query,
 		documentIdentifier,
 		multipart,
-		success,
-		fail,
 	} = args;
 
 	try {
@@ -503,7 +494,6 @@ export function* updateObject({ url, cookieToken, objectsMap, crudObjects, serve
 				args,
 				response,
 			});
-			if (success) success(processedData);
 		} else {
 			yield put({
 				type: actions.UPDATE_DATA_FAIL,
@@ -514,7 +504,6 @@ export function* updateObject({ url, cookieToken, objectsMap, crudObjects, serve
 				args,
 				response,
 			});
-			if (fail) fail(error);
 		}
 		yield* checkAndProcessCallbacks(response);
 
@@ -527,7 +516,6 @@ export function* updateObject({ url, cookieToken, objectsMap, crudObjects, serve
 			data,
 			error: exception,
 		});
-		if (fail) fail(exception);
 	}
 }
 
@@ -540,8 +528,6 @@ export function* deleteObject({ url, cookieToken, objectsMap, crudObjects, serve
 		/*id,*/
 		query,
 		documentIdentifier,
-		success,
-		fail,
 	} = args;
 
 	try {
@@ -575,7 +561,6 @@ export function* deleteObject({ url, cookieToken, objectsMap, crudObjects, serve
 				id: key, // FIXME: legacy
 				args,
 			});
-			if (success) success();
 		} else {
 			yield put({
 				type: actions.DELETE_DATA_FAIL,
@@ -583,7 +568,6 @@ export function* deleteObject({ url, cookieToken, objectsMap, crudObjects, serve
 				error,
 				args,
 			});
-			if (fail) fail(error);
 		}
 		yield* checkAndProcessCallbacks(response);
 	} catch (exception) {
@@ -593,7 +577,6 @@ export function* deleteObject({ url, cookieToken, objectsMap, crudObjects, serve
 			error: exception,
 			args,
 		});
-		if (fail) fail(exception);
 	}
 }
 
