@@ -267,9 +267,11 @@ const actionHandlers = {
 		objectName, newId, data, args,
 	}) {
 		let newState = state;
+		const storeBy = state.getIn([ objectName, 'storeBy' ], '_id');
 		const newData = Object.assign({},
 			{
 				crudoState: CrudoState.OK,
+				[storeBy]: newId,
 			},
 			data,
 		);
