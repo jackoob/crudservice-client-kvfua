@@ -146,29 +146,40 @@ const actionHandlers = {
 		return state.setIn([ objectName,'data' ], gettingData);
 	},
 
-	[actions.GET_SINGLETON_SUCCESS](state, { objectName, data }) {
+	[actions.GET_SINGLETON_SUCCESS](state, { objectName, data , args}) {
 		const imData = fromJS(data);
 		let itemData = state.getIn([ objectName ]);
 		if (!itemData) {
 			itemData = initObjectSate(state.getIn([ objectName ]));
 		}
 		itemData = itemData.set('crudoState', CrudoState.OK).set('data', imData);
+		if (args && args.success) {
+			setTimeout(() => {
+				args.success(data);
+			}, 1);
+		}
 
 		return state.setIn([ objectName ], itemData);
 	},
 
-	[actions.GET_SINGLETON_FAIL](state, { objectName, error }) {
+	[actions.GET_SINGLETON_FAIL](state, { objectName, error, args}) {
 		let itemData = state.getIn([ objectName ]);
 		if (!itemData) {
 			itemData = initObjectSate(state.getIn([ objectName ]));
 		}
 		itemData = itemData.set('crudoState', CrudoState.FAIL).set('error', error);
+		if (args && args.fail) {
+			setTimeout(() => {
+				args.fail(error);
+			}, 1);
+		}
+
 		return state.setIn([ objectName ], itemData);
 	},
 	//----------------------------------------------------------------------------
 	// list
 	//----------------------------------------------------------------------------
-	[actions.LIST_DATA](state, { objectName, listName }) {
+	[actions.LIST_DATA](state, { objectName, listName}) {
 		/*let gettingData = initObjectSate(state.getIn([ objectName ]));
 		gettingData = gettingData.set('crudoState', CrudoState.LOADING);
 		if (listName) {
@@ -195,7 +206,7 @@ const actionHandlers = {
 	 * @returns {*}
 	 */
 	[actions.LIST_DATA_SUCCESS](state, action) {
-		const { objectName, listName, data } = action;
+		const { objectName, listName, data, args } = action;
 		let target = objectName;
 		let newState = state;
 		if (listName) {
@@ -231,6 +242,12 @@ const actionHandlers = {
 				//}
 			});
 		}
+		if (args && args.success) {
+			setTimeout(() => {
+				args.success(data);
+			}, 1);
+		}
+
 		return newState.setIn([ target, 'crudoState' ], CrudoState.OK); // FIXME: this breaks with listName; see other FIXMEs
 	},
 
@@ -247,13 +264,19 @@ const actionHandlers = {
 	 * @param {CrudoAction_ListDataFail} action
 	 */
 	[actions.LIST_DATA_FAIL] (state, action) {
-		const { objectName, listName, error } = action;
+		const { objectName, listName, error, args } = action;
 		let itemData = state.getIn([ objectName ]);
 		if (!itemData) itemData = initObjectSate(state.getIn([ objectName ])); // FIXME: why pass this argument?
 		itemData = itemData.set('crudoState', CrudoState.FAIL).set('error', error);
 		if (listName) {
 			return state.setIn([listName], itemData); // FIXME: don't put listName onto the state root
 		}
+		if (args && args.fail) {
+			setTimeout(() => {
+				args.fail(itemData);
+			}, 1);
+		}
+
 		return state.setIn([ objectName ], itemData);
 	},
 

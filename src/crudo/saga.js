@@ -321,8 +321,9 @@ export function* getSingleton({ url, cookieToken, objectsMap, crudObjects, serve
 }
 export function* listData (
 	{ url, cookieToken, objectsMap, crudObjects, servers, customizeFetchRequest },
-	{ objectName, listName, query }
+	args
 ) {
+	const { objectName, listName, query } = args;
 	try {
 		const apiObject = getApiObject(objectsMap, objectName);
 		const serverUrl = getServer(url, crudObjects, apiObject, servers);
@@ -350,6 +351,7 @@ export function* listData (
 				objectName,
 				listName,
 				data: processedData,
+				args,
 			});
 		} else {
 			yield put({
@@ -357,6 +359,7 @@ export function* listData (
 				objectName,
 				listName,
 				error,
+				args,
 			});
 		}
 	} catch (exception) {
@@ -365,6 +368,7 @@ export function* listData (
 			objectName,
 			listName,
 			error: exception,
+			args,
 		});
 	}
 }
