@@ -267,10 +267,12 @@ const actionHandlers = {
 		objectName, newId, data, args,
 	}) {
 		let newState = state;
-		const newData = {
-			crudoState: CrudoState.OK,
+		const newData = Object.assign({},
+			{
+				crudoState: CrudoState.OK,
+			},
 			data,
-		};
+		);
 		//newData.id = newId;
 		if (newId) {
 			newState = newState.setIn([ objectName, 'data', newId ], fromJS(newData));
