@@ -410,7 +410,7 @@ const actionHandlers = {
 	},
 	[actions.DELETE_DATA_SUCCESS](state, { objectName, id, args }) {
 		if (objectName && id) {
-			return state.deleteIn([ objectName, 'data', id ]);
+			state = state.deleteIn([ objectName, 'data', id ]);
 		}
 		if (args && args.success) {
 			setTimeout(() => {
