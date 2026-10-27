@@ -1,10 +1,10 @@
 {
   "name": "crudservice-client",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "private": true,
-  "author": "Grappes s.r.o.",
-  "description": "Grappes Crud client service for Crudo backend",
-  "license": "Commercial-grappes",
+  "author": "none",
+  "description": "Crud client service for Crudo backend",
+  "license": "Commercial",
   "main": "dist/lib/index.js",
   "module": "dist/es/index.js",
   "files": [
@@ -34,11 +34,10 @@
     "babel-preset-minify": "^0.2.0",
     "babel-watch": "^2.0.7",
     "cross-env": "^5.1.3",
-    "eslint": "^6.2.1",
+    "eslint": "^9.10.0",
     "eslint-plugin-import": "^2.18.2",
     "eslint-plugin-react": "^7.14.3",
     "expect": "^22.0.3",
-    "nwb": "0.18.x",
     "react": "16.8.1",
     "react-dom": "16.8.1"
   },
@@ -54,11 +53,6 @@
     "build:es": "cross-env BABEL_ENV=es babel src --out-dir dist/es",
     "build:es:dev": "cross-env babel src --out-dir dist/es --watch",
     "build:es:watch": "npm run build:es -- --watch",
-    "build-deprecated": "nwb build-react-component",
-    "clean": "nwb clean-module && nwb clean-demo",
-    "start": "nwb serve-react-demo",
-    "test": "nwb test-react",
-    "test:coverage": "nwb test-react --coverage",
-    "test:watch": "nwb test-react --server"
+	"release": "NODE_ENV=production yarn run build; mkdir -p tmp/crudservice-client; cp -R dist tmp/crudservice-client; cp package.json tmp/crudservice-client; tar cvzf RELEASE.tar.gz -C tmp/crudservice-client ."
   }
 }
